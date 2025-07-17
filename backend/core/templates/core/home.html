@@ -1,0 +1,10 @@
+{% extends "core/base.html" %}
+{% block title %}Home - My Portfolio{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1>Hi, I'm Your Name</h1>
+    <p class="lead">I'm a Django + React developer building cool stuff.</p>
+    <a href="{% url 'projects' %}" class="btn btn-primary mt-3">See My Work</a>
+</div>
+{% endblock %}
