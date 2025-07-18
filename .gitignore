@@ -15,6 +15,7 @@ dist/
 # Django
 *.log
 staticfiles/
+media/
 
 # React
 frontend/build/
