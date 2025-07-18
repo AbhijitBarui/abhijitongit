@@ -4,12 +4,11 @@ from .models import Project, Skill, Experience, ContactMessage
 from .serializers import ProjectSerializer, SkillSerializer, ExperienceSerializer, ContactMessageSerializer
 from django.core.mail import send_mail
 from django.conf import settings
-from django.utils.timezone import now
 
 
 # HTML PAGES
 def home_view(request):
-    return render(request, 'core/home.html', {'now': now()})
+    return render(request, 'core/home.html')
 
 def projects_view(request):
     return render(request, 'core/projects.html')
