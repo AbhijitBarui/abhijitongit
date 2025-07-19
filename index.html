@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)http://127.0.0.1:8000/ -->
+<html class="js ss-loaded" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <style id="mailtoui-styles" type="text/css">
+        .mailtoui-modal {
+            background-color: #000;
+            background-color: rgba(0, 0, 0, .4);
+            bottom: 0;
+            color: #303131;
+            display: none;
+            height: 100%;
+            left: 0;
+            margin: 0;
+            padding: 0;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 100%;
+            z-index: 1000
+        }
+
+        .mailtoui-modal-content {
+            -webkit-animation: mailtoui-appear .4s;
+            animation: mailtoui-appear .4s;
+            background-color: #f1f5f8;
+            border-radius: 8px;
+            bottom: auto;
+            -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+            left: 50%;
+            max-height: calc(100% - 100px);
+            overflow: auto;
+            padding: 0;
+            position: fixed;
+            right: -45%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%)
+        }
+
+        .mailtoui-modal-content:focus,
+        .mailtoui-modal-content:hover {
+            overflow-y: auto
+        }
+
+        @media only screen and (min-width:768px) {
+            .mailtoui-modal-content {
+                right: auto
+            }
+        }
+
+        .mailtoui-modal-head {
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            background-color: #fff;
+            clear: both;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            min-width: 0;
+            padding: 10px 20px
+        }
+
+        .mailtoui-modal-title {
+            color: #303131;
+            -webkit-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            font-family: sans-serif;
+            font-size: 120%;
+            font-weight: 700;
+            margin: 0;
+            overflow: hidden;
+            padding: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .mailtoui-modal-close {
+            color: #aaa;
+            -webkit-box-flex: initial;
+            -ms-flex: initial;
+            flex: initial;
+            font-size: 38px;
+            margin-left: 20px;
+            position: relative;
+            text-align: right;
+            text-decoration: none;
+            top: -4px
+        }
+
+        .mailtoui-modal-close:focus,
+        .mailtoui-modal-close:hover {
+            color: #000;
+            cursor: pointer;
+            font-weight: 700;
+            outline: 0
+        }
+
+        .mailtoui-modal-body {
+            height: 100%;
+            padding: 20px
+        }
+
+        .mailtoui-button {
+            color: #333;
+            text-decoration: none
+        }
+
+        .mailtoui-button:focus {
+            outline: 0
+        }
+
+        .mailtoui-button:focus .mailtoui-button-content {
+            background-color: #555;
+            color: #fff
+        }
+
+        .mailtoui-button-content {
+            background-color: #fff;
+            border: none;
+            border-radius: 8px;
+            -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, .18);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .18);
+            margin-bottom: 20px;
+            overflow: hidden;
+            padding: 15px 20px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .mailtoui-button-content:hover {
+            background-color: #555;
+            color: #fff
+        }
+
+        .mailtoui-button:last-child .mailtoui-button-content {
+            margin-bottom: 0
+        }
+
+        .mailtoui-button-icon {
+            display: inline-block;
+            font-weight: 700;
+            position: relative;
+            top: 4px
+        }
+
+        .mailtoui-button-icon svg {
+            height: 24px;
+            width: 24px
+        }
+
+        .mailtoui-button-text {
+            display: inline-block;
+            margin-left: 5px;
+            position: relative;
+            top: -2px
+        }
+
+        .mailtoui-copy {
+            border-radius: 8px;
+            -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, .18);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .18);
+            height: 59px;
+            margin-top: 20px;
+            position: relative
+        }
+
+        .mailtoui-button-copy {
+            background-color: #fff;
+            border: none;
+            border-bottom-left-radius: 8px;
+            border-top-left-radius: 8px;
+            bottom: 21px;
+            color: #333;
+            font-size: 100%;
+            height: 100%;
+            left: 0;
+            overflow: hidden;
+            padding: 15px 20px;
+            position: absolute;
+            text-overflow: ellipsis;
+            top: 0;
+            white-space: nowrap;
+            width: 120px
+        }
+
+        .mailtoui-button-copy:focus,
+        .mailtoui-button-copy:hover {
+            background-color: #555;
+            color: #fff;
+            cursor: pointer;
+            outline: 0
+        }
+
+        .mailtoui-button-copy-clicked,
+        .mailtoui-button-copy-clicked:focus,
+        .mailtoui-button-copy-clicked:hover {
+            background-color: #1f9d55;
+            color: #fff
+        }
+
+        .mailtoui-button-copy-clicked .mailtoui-button-icon,
+        .mailtoui-button-copy-clicked:focus .mailtoui-button-icon,
+        .mailtoui-button-copy-clicked:hover .mailtoui-button-icon {
+            display: none;
+            visibility: hidden
+        }
+
+        .mailtoui-button-copy-clicked .mailtoui-button-text,
+        .mailtoui-button-copy-clicked:focus .mailtoui-button-text,
+        .mailtoui-button-copy-clicked:hover .mailtoui-button-text {
+            color: #fff;
+            top: 2px
+        }
+
+        .mailtoui-email-address {
+            background-color: #d8dcdf;
+            border: none;
+            border-radius: 8px;
+            -webkit-box-shadow: unset;
+            box-shadow: unset;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            color: #48494a;
+            font-size: 100%;
+            height: 100%;
+            overflow: hidden;
+            padding: 20px 20px 20px 140px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%
+        }
+
+        .mailtoui-brand {
+            color: #888;
+            font-size: 80%;
+            margin-top: 20px;
+            text-align: center
+        }
+
+        .mailtoui-brand a {
+            color: #888
+        }
+
+        .mailtoui-brand a:focus,
+        .mailtoui-brand a:hover {
+            font-weight: 700;
+            outline: 0
+        }
+
+        .mailtoui-no-scroll {
+            overflow: hidden;
+            position: fixed;
+            width: 100%
+        }
+
+        .mailtoui-is-hidden {
+            display: none;
+            visibility: hidden
+        }
+
+        @-webkit-keyframes mailtoui-appear {
+            0% {
+                opacity: 0;
+                -webkit-transform: translate(-50%, -50%) scale(0, 0);
+                transform: translate(-50%, -50%) scale(0, 0)
+            }
+
+            100% {
+                opacity: 1;
+                -webkit-transform: translate(-50%, -50%) scale(1, 1);
+                transform: translate(-50%, -50%) scale(1, 1)
+            }
+        }
+
+        @keyframes mailtoui-appear {
+            0% {
+                opacity: 0;
+                -webkit-transform: translate(-50%, -50%) scale(0, 0);
+                transform: translate(-50%, -50%) scale(0, 0)
+            }
+
+            100% {
+                opacity: 1;
+                -webkit-transform: translate(-50%, -50%) scale(1, 1);
+                transform: translate(-50%, -50%) scale(1, 1)
+            }
+        }
+    </style>
+
+    <title>Abhijit</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./index_files/vendor.css">
+    <link rel="stylesheet" href="./index_files/styles.css">
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="./index_files/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./index_files/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./index_files/favicon-16x16.png">
+    <link rel="manifest" href="./index_files/site.webmanifest">
+</head>
+
+<body id="top">
+    <div id="mailtoui-modal" class="mailtoui-modal" style="display: none;" aria-hidden="true">
+        <div class="mailtoui-modal-content">
+            <div class="mailtoui-modal-head">
+                <div id="mailtoui-modal-title" class="mailtoui-modal-title">Compose new email with</div><a
+                    id="mailtoui-modal-close" class="mailtoui-modal-close" href="http://127.0.0.1:8000/#">×</a>
+            </div>
+            <div class="mailtoui-modal-body">
+                <div class="mailtoui-clients"><a id="mailtoui-button-1" class="mailtoui-button"
+                        href="http://127.0.0.1:8000/#">
+                        <div class="mailtoui-button-content"><span id="mailtoui-button-icon-1"
+                                class="mailtoui-button-icon"><svg viewBox="0 0 24 24">
+                                    <g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter"
+                                        stroke-width="2" fill="currentColor" stroke="currentColor">
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M5.704,2.979 c0.694,0.513,1.257,1.164,1.767,2.02C7.917,5.746,8.908,7.826,8,9c-1.027,1.328-4,1.776-4,3c0,0.921,1.304,1.972,2,3 c1.047,1.546,0.571,3.044,0,4c-0.296,0.496-0.769,0.92-1.293,1.234"
+                                            stroke-linecap="butt"></path>
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M20.668,5.227 C18.509,6.262,15.542,6.961,15,7c-1.045,0.075-1.2-0.784-2-2c-0.6-0.912-2-2.053-2-3c0-0.371,0.036-0.672,0.131-0.966"
+                                            stroke-linecap="butt"></path>
+                                        <circle fill="none" stroke="currentColor" stroke-miterlimit="10" cx="12" cy="12"
+                                            r="11"></circle>
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M19.014,12.903 C19.056,15.987,15.042,19.833,13,19c-1.79-0.73-0.527-2.138-0.986-6.097c-0.191-1.646,1.567-3,3.5-3S18.992,11.247,19.014,12.903z"
+                                            stroke-linecap="butt"></path>
+                                    </g>
+                                </svg></span> <span id="mailtoui-button-text-1" class="mailtoui-button-text">Gmail in
+                                browser</span></div>
+                    </a><a id="mailtoui-button-2" class="mailtoui-button" href="http://127.0.0.1:8000/#">
+                        <div class="mailtoui-button-content"><span id="mailtoui-button-icon-2"
+                                class="mailtoui-button-icon"><svg viewBox="0 0 24 24">
+                                    <g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter"
+                                        stroke-width="2" fill="currentColor" stroke="currentColor">
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M5.704,2.979 c0.694,0.513,1.257,1.164,1.767,2.02C7.917,5.746,8.908,7.826,8,9c-1.027,1.328-4,1.776-4,3c0,0.921,1.304,1.972,2,3 c1.047,1.546,0.571,3.044,0,4c-0.296,0.496-0.769,0.92-1.293,1.234"
+                                            stroke-linecap="butt"></path>
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M20.668,5.227 C18.509,6.262,15.542,6.961,15,7c-1.045,0.075-1.2-0.784-2-2c-0.6-0.912-2-2.053-2-3c0-0.371,0.036-0.672,0.131-0.966"
+                                            stroke-linecap="butt"></path>
+                                        <circle fill="none" stroke="currentColor" stroke-miterlimit="10" cx="12" cy="12"
+                                            r="11"></circle>
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M19.014,12.903 C19.056,15.987,15.042,19.833,13,19c-1.79-0.73-0.527-2.138-0.986-6.097c-0.191-1.646,1.567-3,3.5-3S18.992,11.247,19.014,12.903z"
+                                            stroke-linecap="butt"></path>
+                                    </g>
+                                </svg></span> <span id="mailtoui-button-text-2" class="mailtoui-button-text">Outlook in
+                                browser</span></div>
+                    </a><a id="mailtoui-button-3" class="mailtoui-button" href="http://127.0.0.1:8000/#">
+                        <div class="mailtoui-button-content"><span id="mailtoui-button-icon-3"
+                                class="mailtoui-button-icon"><svg viewBox="0 0 24 24">
+                                    <g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter"
+                                        stroke-width="2" fill="currentColor" stroke="currentColor">
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M5.704,2.979 c0.694,0.513,1.257,1.164,1.767,2.02C7.917,5.746,8.908,7.826,8,9c-1.027,1.328-4,1.776-4,3c0,0.921,1.304,1.972,2,3 c1.047,1.546,0.571,3.044,0,4c-0.296,0.496-0.769,0.92-1.293,1.234"
+                                            stroke-linecap="butt"></path>
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M20.668,5.227 C18.509,6.262,15.542,6.961,15,7c-1.045,0.075-1.2-0.784-2-2c-0.6-0.912-2-2.053-2-3c0-0.371,0.036-0.672,0.131-0.966"
+                                            stroke-linecap="butt"></path>
+                                        <circle fill="none" stroke="currentColor" stroke-miterlimit="10" cx="12" cy="12"
+                                            r="11"></circle>
+                                        <path data-cap="butt" data-color="color-2" fill="none" stroke-miterlimit="10"
+                                            d="M19.014,12.903 C19.056,15.987,15.042,19.833,13,19c-1.79-0.73-0.527-2.138-0.986-6.097c-0.191-1.646,1.567-3,3.5-3S18.992,11.247,19.014,12.903z"
+                                            stroke-linecap="butt"></path>
+                                    </g>
+                                </svg></span> <span id="mailtoui-button-text-3" class="mailtoui-button-text">Yahoo in
+                                browser</span></div>
+                    </a><a id="mailtoui-button-4" class="mailtoui-button" href="http://127.0.0.1:8000/#">
+                        <div class="mailtoui-button-content"><span id="mailtoui-button-icon-4"
+                                class="mailtoui-button-icon"><svg viewBox="0 0 24 24">
+                                    <g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter"
+                                        stroke-width="2" fill="currentColor" stroke="currentColor">
+                                        <line data-color="color-2" fill="none" stroke-miterlimit="10" x1="5" y1="6"
+                                            x2="6" y2="6"></line>
+                                        <line data-color="color-2" fill="none" stroke-miterlimit="10" x1="10" y1="6"
+                                            x2="11" y2="6"></line>
+                                        <line data-color="color-2" fill="none" stroke-miterlimit="10" x1="15" y1="6"
+                                            x2="19" y2="6"></line>
+                                        <line fill="none" stroke="currentColor" stroke-miterlimit="10" x1="1" y1="10"
+                                            x2="23" y2="10"></line>
+                                        <rect x="1" y="2" fill="none" stroke="currentColor" stroke-miterlimit="10"
+                                            width="22" height="20"></rect>
+                                    </g>
+                                </svg></span> <span id="mailtoui-button-text-4" class="mailtoui-button-text">Default
+                                email app</span></div>
+                    </a></div>
+                <div id="mailtoui-copy" class="mailtoui-copy">
+                    <div id="mailtoui-email-address" class="mailtoui-email-address"></div><button
+                        id="mailtoui-button-copy" class="mailtoui-button-copy"
+                        data-copytargetid="mailtoui-email-address"><span id="mailtoui-button-icon-copy"
+                            class="mailtoui-button-icon"><svg viewBox="0 0 24 24">
+                                <g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter"
+                                    stroke-width="2" stroke="currentColor">
+                                    <polyline fill="none" stroke="currentColor" stroke-miterlimit="10"
+                                        points="20,4 22,4 22,23 2,23 2,4 4,4 "></polyline>
+                                    <path fill="none" stroke="currentColor" stroke-miterlimit="10"
+                                        d="M14,3c0-1.105-0.895-2-2-2 s-2,0.895-2,2H7v4h10V3H14z"></path>
+                                    <line data-color="color-2" fill="none" stroke-miterlimit="10" x1="7" y1="11" x2="17"
+                                        y2="11"></line>
+                                    <line data-color="color-2" fill="none" stroke-miterlimit="10" x1="7" y1="15" x2="17"
+                                        y2="15"></line>
+                                    <line data-color="color-2" fill="none" stroke-miterlimit="10" x1="7" y1="19" x2="11"
+                                        y2="19"></line>
+                                </g>
+                            </svg></span> <span id="mailtoui-button-text-copy"
+                            class="mailtoui-button-text">Copy</span></button>
+                </div>
+                <div class="mailtoui-brand"><a href="https://mailtoui.com/?ref=ui" target="_blank">Powered by
+                        MailtoUI</a></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="preloader" style="opacity: 0; visibility: hidden; display: none;">
+        <div id="loader" style="opacity: 0;"></div>
+    </div>
+
+    <div class="s-pagewrap">
+        <div class="circles">
+            <span style="opacity: 0.1;"></span><span style="opacity: 0.1;"></span><span
+                style="opacity: 0.1;"></span><span style="opacity: 0.1;"></span><span style="opacity: 0.1;"></span>
+        </div>
+
+        <!-- Site Header -->
+        <header class="s-header" style="transform: translateY(0px); opacity: 1;">
+            <div class="header-mobile">
+                <span class="mobile-home-link"><a href="http://127.0.0.1:8000/">Abhijit.</a></span>
+                <a class="mobile-menu-toggle" href="http://127.0.0.1:8000/#0"><span>Menu</span></a>
+            </div>
+
+            <div class="row wide main-nav-wrap">
+                <nav class="column lg-12 main-nav">
+                    <ul>
+                        <li><a href="http://127.0.0.1:8000/" class="home-link">Abhijit.</a></li>
+                        <li class="current"><a href="http://127.0.0.1:8000/#intro" class="smoothscroll">Intro</a></li>
+                        <li class=""><a href="http://127.0.0.1:8000/#about" class="smoothscroll">About</a></li>
+                        <li class=""><a href="http://127.0.0.1:8000/#works" class="smoothscroll">Works</a></li>
+                        <li class=""><a href="http://127.0.0.1:8000/#contact" class="smoothscroll">Say Hello</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+
+        <style>
+            .highlight {
+                background: rgba(91, 130, 171, 0.45);
+                /* soft selection look */
+                box-decoration-break: clone;
+                padding: 0.1em 0.25em;
+                border-radius: 0.1em;
+            }
+        </style>
+        <main class="s-content">
+
+
+            <!-- ### intro
+            ================================================== -->
+            <section id="intro" class="s-intro target-section">
+
+                <div class="row intro-content wide">
+
+                    <div class="column">
+                        <div class="text-pretitle with-line" style="transform: translateX(0px); opacity: 1;">
+                            Hello Visitor
+                        </div>
+
+                        <!-- <h1 class="text-huge-title">
+                    I am Abhijit, <br>
+                    a digital designer <br>
+                    & frontend <br>
+                    developer based <br>
+                    in Somewhere.
+                </h1> -->
+                        <h1 class="text-huge-title" style="transform: translateX(0px); opacity: 1;">
+                            I am Abhijit, <br>
+                            a <span class="highlight">Web Developer</span> <br>
+                            from Bangalore <br>
+                            Crafting <br><span class="highlight">Modern Websites</span> <br>
+
+                        </h1>
+
+
+                    </div>
+
+                    <ul class="intro-social">
+                        <li style="transform: translateX(0px); opacity: 1;"><a
+                                href="http://127.0.0.1:8000/#0">Behance</a></li>
+                        <li style="transform: translateX(0px); opacity: 1;"><a
+                                href="http://127.0.0.1:8000/#0">Twitter</a></li>
+                        <li style="transform: translateX(0px); opacity: 1;"><a
+                                href="http://127.0.0.1:8000/#0">Dribbble</a></li>
+                        <li style="transform: translateX(0px); opacity: 1;"><a
+                                href="http://127.0.0.1:8000/#0">Instagram</a></li>
+                    </ul>
+
+                </div> <!-- end intro content -->
+
+                <a href="http://127.0.0.1:8000/#about" class="intro-scrolldown smoothscroll"
+                    style="transform: translateY(0px); opacity: 1;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                        fill-rule="evenodd" clip-rule="evenodd">
+                        <path
+                            d="M11 21.883l-6.235-7.527-.765.644 7.521 9 7.479-9-.764-.645-6.236 7.529v-21.884h-1v21.883z">
+                        </path>
+                    </svg>
+                </a>
+
+            </section> <!-- end s-intro -->
+
+
+            <!-- ### about
+            ================================================== -->
+            <section id="about" class="s-about target-section">
+
+
+                <div class="row about-info wide ss-animated" data-animate-block="">
+
+                    <div class="column lg-6 md-12 about-info__pic-block">
+                        <img src="./index_files/portfolio.jpg"
+                            srcset="./index_files/portfolio.jpg 1x, ./index_files/portfolio.jpg 2x" alt=""
+                            class="about-info__pic" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+
+                    </div>
+
+                    <div class="column lg-6 md-12">
+                        <div class="about-info__text">
+
+                            <h2 class="text-pretitle with-line" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                About
+                            </h2>
+                            <p class="attention-getter" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                I’m a full-stack developer with a passion for turning real-world business needs into
+                                powerful
+                                digital solutions. From building intuitive user interfaces with React to engineering
+                                scalable
+                                backends with Django, I specialize in crafting robust, end-to-end web applications.
+                                Whether it’s
+                                automating operations, integrating APIs, or deploying to cloud infrastructure — I’m here
+                                to
+                                handle the tech so you can focus on your vision.
+                            </p>
+                            <a href="https://drive.google.com/file/d/1M5emb-T1wqgLu5wVkG67sxVXUikiBN0I/view?usp=sharing"
+                                class="btn btn--medium u-fullwidth" data-animate-el="" target="_blank"
+                                style="opacity: 1; transform: translateY(0px);">Download CV</a>
+
+
+                        </div>
+                    </div>
+                </div> <!-- about-info -->
+
+
+                <div class="row about-expertise ss-animated" data-animate-block="">
+                    <div class="column lg-12">
+
+                        <h2 class="text-pretitle" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+                            Expertise</h2>
+
+                        <!-- <ul class="skills-list h1" data-animate-el>
+                    <li>Visual Design</li>
+                    <li>Branding Identity</li>
+                    <li>UI Design</li>
+                    <li>Product Design</li>
+                    <li>Prototyping</li>
+                    <li>Illustration</li>
+                </ul> -->
+
+                        <ul class="skills-list h1" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+                            <li>Scalable Web Apps</li>
+                            <li>REST API Design</li>
+                            <li>React Interfaces</li>
+                            <li>Cloud &amp; CI/CD</li>
+                            <li>Automation Workflows</li>
+                            <li>Database Optimization</li>
+                        </ul>
+
+
+                    </div>
+                </div> <!-- end about-expertise -->
+
+
+                <div class="row about-timelines ss-animated" data-animate-block="">
+
+                    <div class="column lg-6 tab-12">
+
+                        <h2 class="text-pretitle" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+                            Experience
+                        </h2>
+
+                        <div class="timeline" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+
+                            <div class="timeline__block">
+                                <div class="timeline__bullet"></div>
+                                <div class="timeline__header">
+                                    <h4 class="timeline__title">Markytics Consulting Pvt Ltd</h4>
+                                    <h5 class="timeline__meta">Django Developer</h5>
+                                    <p class="timeline__timeframe">2022 – 2025</p>
+                                </div>
+                                <div class="timeline__desc">
+                                    <p>Led backend development for 6+ full-stack web apps using Django and DRF. Built
+                                        and
+                                        consumed REST APIs, integrated 10+ third-party services, and deployed CI/CD
+                                        pipelines
+                                        using Docker and Jenkins on AWS. Collaborated closely with frontend modules in
+                                        HTML,
+                                        CSS, JS, and React. Also handled SQL optimization, DevOps, automation, and team
+                                        mentorship.</p>
+                                </div>
+                            </div>
+
+                            <!-- 
+                    <div class="timeline__block">
+                        <div class="timeline__bullet"></div>
+                        <div class="timeline__header">
+                            <h4 class="timeline__title">Microsoft</h4>
+                            <h5 class="timeline__meta">Frontend Developer</h5>
+                            <p class="timeline__timeframe">August 2016 - July 2019</p>
+                        </div>
+                        <div class="timeline__desc">
+                            <p>Lorem ipsum Occaecat do esse ex et dolor culpa nisi ex in magna consectetur nisi
+                                cupidatat laboris esse eiusmod deserunt aute do quis velit esse sed Ut proident
+                                cupidatat nulla esse cillum laborum occaecat nostrud sit dolor incididunt amet
+                                est occaecat nisi.</p>
+                        </div>
+                    </div> -->
+
+                        </div> <!-- end timeline -->
+
+                    </div> <!-- end column -->
+
+                    <div class="column lg-6 tab-12">
+
+                        <h2 class="text-pretitle" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+                            Education
+                        </h2>
+
+                        <div class="timeline" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+
+                            <div class="timeline__block">
+                                <div class="timeline__bullet"></div>
+                                <div class="timeline__header">
+                                    <h4 class="timeline__title">Govt College of Engineering, Berhampore, West Bengal
+                                    </h4>
+                                    <h5 class="timeline__meta">B.Tech in Mechanical Engineering</h5>
+                                    <p class="timeline__timeframe">2015 – 2019</p>
+                                </div>
+                                <div class="timeline__desc">
+                                    <p>Graduated with a strong foundation in problem-solving and analytical thinking,
+                                        later
+                                        pivoting into software development and full-stack engineering.</p>
+                                </div>
+                            </div>
+                            <!-- 
+
+                    <div class="timeline__block">
+                        <div class="timeline__bullet"></div>
+                        <div class="timeline__header">
+                            <h4 class="timeline__title">School of Cool Designers</h4>
+                            <h5 class="timeline__meta">B.A. Degree in Graphic Design</h5>
+                            <p class="timeline__timeframe">August 2012</p>
+                        </div>
+                        <div class="timeline__desc">
+                            <p>Lorem ipsum Occaecat do esse ex et dolor culpa nisi ex in magna consectetur nisi
+                                cupidatat laboris esse eiusmod deserunt aute do quis velit esse sed Ut proident
+                                cupidatat nulla esse cillum laborum occaecat nostrud sit dolor incididunt amet
+                                est occaecat nisi.</p>
+                        </div>
+                    </div> -->
+
+                        </div> <!-- end timeline -->
+
+                    </div> <!-- end column -->
+
+
+                </div> <!-- end about-timelines -->
+
+            </section> <!-- end s-about -->
+
+
+            <!-- ### works
+            ================================================== -->
+            <section id="works" class="s-works target-section">
+
+
+                <div class="row works-portfolio">
+
+                    <div class="column lg-12 ss-animated" data-animate-block="">
+
+                        <h2 class="text-pretitle" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+                            Recent Works
+                        </h2>
+                        <p class="h1" data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+                            Here are some of my favorite projects I have done lately. Feel free to check them out.
+                        </p>
+
+                        <ul class="folio-list row block-lg-one-half block-stack-on-1000">
+
+                            <li class="folio-list__item column" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                <a class="folio-list__item-link" href="http://127.0.0.1:8000/#modal-01">
+                                    <div class="folio-list__item-pic">
+                                        <img src="./index_files/fuji.jpg"
+                                            srcset="images/portfolio/fuji.jpg 1x, images/portfolio/fuji@2x.jpg 2x"
+                                            alt="">
+                                    </div>
+
+                                    <div class="folio-list__item-text">
+                                        <div class="folio-list__item-cat">
+                                            Website
+                                        </div>
+                                        <div class="folio-list__item-title">
+                                            Retro Camera.
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="folio-list__proj-link" href="http://127.0.0.1:8000/#" title="project link">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </li> <!--end folio-list__item -->
+
+                            <li class="folio-list__item column" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                <a class="folio-list__item-link" href="http://127.0.0.1:8000/#modal-02">
+                                    <div class="folio-list__item-pic">
+                                        <img src="./index_files/lamp.jpg"
+                                            srcset="images/portfolio/lamp.jpg 1x, images/portfolio/lamp@2x.jpg 2x"
+                                            alt="">
+                                    </div>
+
+                                    <div class="folio-list__item-text">
+                                        <div class="folio-list__item-cat">
+                                            Product Design
+                                        </div>
+                                        <div class="folio-list__item-title">
+                                            The White Lamp.
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="folio-list__proj-link" href="http://127.0.0.1:8000/#" title="project link">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </li> <!--end folio-list__item -->
+
+                            <li class="folio-list__item column" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                <a class="folio-list__item-link" href="http://127.0.0.1:8000/#modal-03">
+                                    <div class="folio-list__item-pic">
+                                        <img src="./index_files/rucksack.jpg"
+                                            srcset="images/portfolio/rucksack.jpg 1x, images/portfolio/rucksack@2x.jpg 2x"
+                                            alt="">
+                                    </div>
+
+                                    <div class="folio-list__item-text">
+                                        <div class="folio-list__item-cat">
+                                            Branding
+                                        </div>
+                                        <div class="folio-list__item-title">
+                                            Rucksuck.
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="folio-list__proj-link" href="http://127.0.0.1:8000/#" title="project link">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </li> <!--end folio-list__item -->
+
+                            <li class="folio-list__item column" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                <a class="folio-list__item-link" href="http://127.0.0.1:8000/#modal-04">
+                                    <div class="folio-list__item-pic">
+                                        <img src="./index_files/skaterboy.jpg"
+                                            srcset="images/portfolio/skaterboy.jpg 1x, images/portfolio/skaterboy@2x.jpg 2x"
+                                            alt="">
+                                    </div>
+
+                                    <div class="folio-list__item-text">
+                                        <div class="folio-list__item-cat">
+                                            Website
+                                        </div>
+                                        <div class="folio-list__item-title">
+                                            Since Day One.
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="folio-list__proj-link" href="http://127.0.0.1:8000/#" title="project link">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </li> <!--end folio-list__item -->
+
+                            <li class="folio-list__item column" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                <a class="folio-list__item-link" href="http://127.0.0.1:8000/#modal-05">
+                                    <div class="folio-list__item-pic">
+                                        <img src="./index_files/sanddunes.jpg"
+                                            srcset="images/portfolio/sanddunes.jpg 1x, images/portfolio/sanddunes@2x.jpg 2x"
+                                            alt="">
+                                    </div>
+
+                                    <div class="folio-list__item-text">
+                                        <div class="folio-list__item-cat">
+                                            Illustration
+                                        </div>
+                                        <div class="folio-list__item-title">
+                                            Sand Dunes.
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="folio-list__proj-link" href="http://127.0.0.1:8000/#" title="project link">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </li> <!--end folio-list__item -->
+
+                            <li class="folio-list__item column" data-animate-el=""
+                                style="opacity: 1; transform: translateY(0px);">
+                                <a class="folio-list__item-link" href="http://127.0.0.1:8000/#modal-06">
+                                    <div class="folio-list__item-pic">
+                                        <img src="./index_files/minimalismo.jpg"
+                                            srcset="images/portfolio/minimalismo.jpg 1x, images/portfolio/minimalismo@2x.jpg 2x"
+                                            alt="">
+                                    </div>
+
+                                    <div class="folio-list__item-text">
+                                        <div class="folio-list__item-cat">
+                                            Branding
+                                        </div>
+                                        <div class="folio-list__item-title">
+                                            Minimalismo.
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="folio-list__proj-link" href="http://127.0.0.1:8000/#" title="project link">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+                                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </li> <!--end folio-list__item -->
+
+                        </ul> <!-- end folio-list -->
+
+                    </div> <!-- end column -->
+
+
+                    <!-- Modal Templates Popup
+                    -------------------------------------------- -->
+                    <div id="modal-01" hidden="">
+
+                    </div> <!-- end modal -->
+
+                    <div id="modal-02" hidden="">
+
+                    </div> <!-- end modal -->
+
+                    <div id="modal-03" hidden="">
+
+                    </div> <!-- end modal -->
+
+                    <div id="modal-04" hidden="">
+
+                    </div> <!-- end modal -->
+
+                    <div id="modal-05" hidden="">
+
+                    </div> <!-- end modal -->
+
+                    <div id="modal-06" hidden="">
+
+                    </div> <!-- end modal -->
+
+                </div> <!-- end works-portfolio -->
+
+
+                <div class="row testimonials">
+                    <div class="column lg-12 ss-animated" data-animate-block="">
+
+                        <div class="swiper-container testimonial-slider swiper-container-initialized swiper-container-horizontal"
+                            data-animate-el="" style="opacity: 1; transform: translateY(0px);">
+
+                            <div class="swiper-wrapper" id="swiper-wrapper-10b3763e6681074cf4" aria-live="polite"
+                                style="transform: translate3d(0px, 0px, 0px);">
+
+                                <div class="testimonial-slider__slide swiper-slide swiper-slide-active" role="group"
+                                    aria-label="1 / 4" style="width: 540px; margin-right: 80px;">
+                                    <div class="testimonial-slider__author">
+                                        <img src="./index_files/user-02.jpg" alt="Author image"
+                                            class="testimonial-slider__avatar">
+                                        <cite class="testimonial-slider__cite">
+                                            <strong>Tim Cook</strong>
+                                            <span>CEO, Apple</span>
+                                        </cite>
+                                    </div>
+                                    <p>
+                                        Molestiae incidunt consequatur quis ipsa autem nam sit enim magni. Voluptas
+                                        tempore rem.
+                                        Explicabo a quaerat sint autem dolore ducimus ut consequatur neque. Nisi dolores
+                                        quaerat fuga rem nihil nostrum.
+                                        Laudantium quia consequatur molestias delectus culpa.
+                                    </p>
+                                </div> <!-- end testimonial-slider__slide -->
+
+                                <div class="testimonial-slider__slide swiper-slide swiper-slide-next" role="group"
+                                    aria-label="2 / 4" style="width: 540px; margin-right: 80px;">
+                                    <div class="testimonial-slider__author">
+                                        <img src="./index_files/user-03.jpg" alt="Author image"
+                                            class="testimonial-slider__avatar">
+                                        <cite class="testimonial-slider__cite">
+                                            <strong>Sundar Pichai</strong>
+                                            <span>CEO, Google</span>
+                                        </cite>
+                                    </div>
+                                    <p>
+                                        Excepturi nam cupiditate culpa doloremque deleniti repellat. Veniam quos
+                                        repellat voluptas animi adipisci.
+                                        Nisi eaque consequatur. Voluptatem dignissimos ut ducimus accusantium
+                                        perspiciatis.
+                                        Quasi voluptas eius distinctio. Atque eos maxime.
+                                    </p>
+                                </div> <!-- end testimonial-slider__slide -->
+
+                                <div class="testimonial-slider__slide swiper-slide" role="group" aria-label="3 / 4"
+                                    style="width: 540px; margin-right: 80px;">
+                                    <div class="testimonial-slider__author">
+                                        <img src="./index_files/user-01.jpg" alt="Author image"
+                                            class="testimonial-slider__avatar">
+                                        <cite class="testimonial-slider__cite">
+                                            <strong>Satya Nadella</strong>
+                                            <span>CEO, Microsoft</span>
+                                        </cite>
+                                    </div>
+                                    <p>
+                                        Repellat dignissimos libero. Qui sed at corrupti expedita voluptas odit. Nihil
+                                        ea quia nesciunt. Ducimus aut sed ipsam.
+                                        Autem eaque officia cum exercitationem sunt voluptatum accusamus. Quasi voluptas
+                                        eius distinctio.
+                                        Voluptatem dignissimos ut.
+                                    </p>
+                                </div> <!-- end testimonial-slider__slide -->
+
+                                <div class="testimonial-slider__slide swiper-slide" role="group" aria-label="4 / 4"
+                                    style="width: 540px; margin-right: 80px;">
+                                    <div class="testimonial-slider__author">
+                                        <img src="./index_files/user-06.jpg" alt="Author image"
+                                            class="testimonial-slider__avatar">
+                                        <cite class="testimonial-slider__cite">
+                                            <strong>Jeff Bezos</strong>
+                                            <span>CEO, Amazon</span>
+                                        </cite>
+                                    </div>
+                                    <p>
+                                        Nunc interdum lacus sit amet orci. Vestibulum dapibus nunc ac augue. Fusce vel
+                                        dui. In ac felis
+                                        quis tortor malesuada pretium. Curabitur vestibulum aliquam leo. Qui sed at
+                                        corrupti expedita voluptas odit.
+                                        Nihil ea quia nesciunt. Ducimus aut sed ipsam.
+                                    </p>
+                                </div> <!-- end testimonial-slider__slide -->
+
+                            </div> <!-- end swiper-wrapper -->
+
+                            <div class="swiper-pagination swiper-pagination-clickable swiper-pagination-bullets"><span
+                                    class="swiper-pagination-bullet swiper-pagination-bullet-active" tabindex="0"
+                                    role="button" aria-label="Go to slide 1"></span><span
+                                    class="swiper-pagination-bullet" tabindex="0" role="button"
+                                    aria-label="Go to slide 2"></span><span class="swiper-pagination-bullet"
+                                    tabindex="0" role="button" aria-label="Go to slide 3"></span></div>
+
+                            <span class="swiper-notification" aria-live="assertive" aria-atomic="true"></span>
+                        </div> <!-- end swiper-container -->
+
+                    </div> <!-- end column -->
+                </div> <!-- end row testimonials -->
+
+            </section> <!-- end s-works -->
+
+
+            <!-- ### contact
+            ================================================== -->
+            <section id="contact" class="s-contact target-section">
+
+                <div class="row contact-top">
+                    <div class="column lg-12">
+                        <h2 class="text-pretitle">
+                            Get In Touch
+                        </h2>
+
+                        <p class="h1">
+                            I love to hear from you.
+                            Whether you have a question or just
+                            want to chat about design, tech &amp; art — shoot me a message.
+                        </p>
+                    </div>
+                </div> <!-- end contact-top -->
+
+                <div class="row contact-bottom">
+                    <div class="column lg-3 md-5 tab-6 stack-on-550 contact-block">
+                        <h3 class="text-pretitle">Reach me at</h3>
+                        <p class="contact-links">
+                            <a href="mailto:abhijitongit@gmail.com" class="mailtoui">abhijitongit@gmail.com</a> <br>
+                            <a href="tel:+919749574031">+91 97495 74031</a>
+                        </p>
+                    </div>
+                    <div class="column lg-4 md-5 tab-6 stack-on-550 contact-block">
+                        <h3 class="text-pretitle">Socials</h3>
+                        <ul class="contact-social">
+                            <li><a href="http://127.0.0.1:8000/#0">Behance</a></li>
+                            <li><a href="http://127.0.0.1:8000/#0">Dribble</a></li>
+                            <li><a href="http://127.0.0.1:8000/#0">Twitter</a></li>
+                            <li><a href="http://127.0.0.1:8000/#0">Instagram</a></li>
+                            <li><a href="http://127.0.0.1:8000/#0">Github</a></li>
+                        </ul>
+                    </div>
+                    <div class="column lg-4 md-12 contact-block">
+                        <p class="text-pretitle" style="margin-bottom: 1rem;">
+                            You’ve got growth to focus on — I’ll handle the tech.
+                        </p>
+                        <a href="mailto:abhijitongit@gmail.com"
+                            class="mailtoui btn btn--medium u-fullwidth contact-btn">
+                            Let’s Talk
+                        </a>
+                    </div>
+
+                </div> <!-- end contact-bottom -->
+
+            </section> <!-- end contact -->
+
+        </main>
+
+
+        <!-- Footer -->
+        <footer class="s-footer">
+            <div class="row">
+                <div class="column ss-copyright">
+                    <span>© Copyright Abhijit 2021</span>
+                    <!-- <span>Design by <a href="https://www.styleshout.com/">StyleShout</a> Distribution By
+                        <a href="https://themewagon.com">Themewagon</a></span> -->
+                </div>
+                <div class="ss-go-top">
+                    <a class="smoothscroll" title="Back to Top" href="http://127.0.0.1:8000/#top">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill-rule="evenodd"
+                            clip-rule="evenodd">
+                            <path
+                                d="M11 2.206l-6.235 7.528-.765-.645 7.521-9 7.479 9-.764.646-6.236-7.53v21.884h-1v-21.883z">
+                            </path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="./index_files/plugins.js"></script>
+    <script src="./index_files/main.js"></script>
+
+
+
+</body>
+
+</html>
