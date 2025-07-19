@@ -41,12 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function appendMessage(sender, text) {
         const msg = document.createElement("div");
+        msg.classList.add("chatbot-message", sender); // user or bot
         msg.innerText = text;
-        msg.style.alignSelf = sender === "user" ? "flex-end" : "flex-start";
-        msg.style.background = sender === "user" ? "#444" : "#333";
-        msg.style.padding = "6px 10px";
-        msg.style.borderRadius = "8px";
-        msg.style.maxWidth = "80%";
         chatWindow.appendChild(msg);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
