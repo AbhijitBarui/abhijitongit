@@ -21,3 +21,4 @@ media/
 frontend/build/
 
 .env
+bootstrap_src
