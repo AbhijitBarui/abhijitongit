@@ -1,8 +1,18 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block title %}Home - Abhijit{% endblock %}
 
 {% block content %}
+<style>
+    .highlight {
+        background: rgba(91, 130, 171, 0.45);
+        /* soft selection look */
+        box-decoration-break: clone;
+        padding: 0.1em 0.25em;
+        border-radius: 0.1em;
+    }
+</style>
 <main class="s-content">
 
 
@@ -14,16 +24,25 @@
 
             <div class="column">
                 <div class="text-pretitle with-line">
-                    Hello World
+                    Hello Visitor
                 </div>
 
-                <h1 class="text-huge-title">
+                <!-- <h1 class="text-huge-title">
                     I am Abhijit, <br>
                     a digital designer <br>
                     & frontend <br>
                     developer based <br>
                     in Somewhere.
+                </h1> -->
+                <h1 class="text-huge-title">
+                    I am Abhijit, <br>
+                    a <span class="highlight">Web Developer</span> <br>
+                    from Bangalore <br>
+                    Crafting <br><span class="highlight">Modern Websites</span> <br>
+
                 </h1>
+
+
             </div>
 
             <ul class="intro-social">
@@ -53,8 +72,10 @@
         <div class="row about-info wide" data-animate-block>
 
             <div class="column lg-6 md-12 about-info__pic-block">
-                <img src="images/about-photo.jpg" srcset="images/about-photo.jpg 1x, images/about-photo@2x.jpg 2x"
+                <img src="{% static 'images/avatars/portfolio.jpg' %}"
+                    srcset="{% static 'images/avatars/portfolio.jpg' %} 1x, {% static 'images/avatars/portfolio.jpg' %} 2x"
                     alt="" class="about-info__pic" data-animate-el>
+
             </div>
 
             <div class="column lg-6 md-12">
@@ -64,13 +85,15 @@
                         About
                     </h2>
                     <p class="attention-getter" data-animate-el>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-                        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-                        ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-                        velit esse cillum dolore eu fugiat nulla pariatur.
+                        I’m a full-stack developer with a passion for turning real-world business needs into powerful
+                        digital solutions. From building intuitive user interfaces with React to engineering scalable
+                        backends with Django, I specialize in crafting robust, end-to-end web applications. Whether it’s
+                        automating operations, integrating APIs, or deploying to cloud infrastructure — I’m here to
+                        handle the tech so you can focus on your vision.
                     </p>
-                    <a href="#0" class="btn btn--medium u-fullwidth" data-animate-el>Download CV</a>
+                    <a href="https://drive.google.com/file/d/1M5emb-T1wqgLu5wVkG67sxVXUikiBN0I/view?usp=sharing"
+                        class="btn btn--medium u-fullwidth" data-animate-el target="_blank">Download CV</a>
+
 
                 </div>
             </div>
@@ -82,14 +105,24 @@
 
                 <h2 class="text-pretitle" data-animate-el>Expertise</h2>
 
-                <ul class="skills-list h1" data-animate-el>
+                <!-- <ul class="skills-list h1" data-animate-el>
                     <li>Visual Design</li>
                     <li>Branding Identity</li>
                     <li>UI Design</li>
                     <li>Product Design</li>
                     <li>Prototyping</li>
                     <li>Illustration</li>
+                </ul> -->
+
+                <ul class="skills-list h1" data-animate-el>
+                    <li>Scalable Web Apps</li>
+                    <li>REST API Design</li>
+                    <li>React Interfaces</li>
+                    <li>Cloud & CI/CD</li>
+                    <li>Automation Workflows</li>
+                    <li>Database Optimization</li>
                 </ul>
+
 
             </div>
         </div> <!-- end about-expertise -->
@@ -108,18 +141,20 @@
                     <div class="timeline__block">
                         <div class="timeline__bullet"></div>
                         <div class="timeline__header">
-                            <h4 class="timeline__title">Dropbox</h3>
-                                <h5 class="timeline__meta">Product Designer</h5>
-                                <p class="timeline__timeframe">August 2019 - Present</p>
+                            <h4 class="timeline__title">Markytics Consulting Pvt Ltd</h4>
+                            <h5 class="timeline__meta">Django Developer</h5>
+                            <p class="timeline__timeframe">2022 – 2025</p>
                         </div>
                         <div class="timeline__desc">
-                            <p>Lorem ipsum Occaecat do esse ex et dolor culpa nisi ex in magna consectetur nisi
-                                cupidatat laboris esse eiusmod deserunt aute do quis velit esse sed Ut proident
-                                cupidatat nulla esse cillum laborum occaecat nostrud sit dolor incididunt amet
-                                est occaecat nisi.</p>
+                            <p>Led backend development for 6+ full-stack web apps using Django and DRF. Built and
+                                consumed REST APIs, integrated 10+ third-party services, and deployed CI/CD pipelines
+                                using Docker and Jenkins on AWS. Collaborated closely with frontend modules in HTML,
+                                CSS, JS, and React. Also handled SQL optimization, DevOps, automation, and team
+                                mentorship.</p>
                         </div>
                     </div>
 
+                    <!-- 
                     <div class="timeline__block">
                         <div class="timeline__bullet"></div>
                         <div class="timeline__header">
@@ -133,7 +168,7 @@
                                 cupidatat nulla esse cillum laborum occaecat nostrud sit dolor incididunt amet
                                 est occaecat nisi.</p>
                         </div>
-                    </div>
+                    </div> -->
 
                 </div> <!-- end timeline -->
 
@@ -150,17 +185,16 @@
                     <div class="timeline__block">
                         <div class="timeline__bullet"></div>
                         <div class="timeline__header">
-                            <h4 class="timeline__title">University of Life</h3>
-                                <h5 class="timeline__meta">Master in Graphic Design</h5>
-                                <p class="timeline__timeframe">April 2015</p>
+                            <h4 class="timeline__title">GCETT, Berhampore, West Bengal</h4>
+                            <h5 class="timeline__meta">B.Tech in Mechanical Engineering</h5>
+                            <p class="timeline__timeframe">2015 – 2019</p>
                         </div>
                         <div class="timeline__desc">
-                            <p>Lorem ipsum Occaecat do esse ex et dolor culpa nisi ex in magna consectetur nisi
-                                cupidatat laboris esse eiusmod deserunt aute do quis velit esse sed Ut proident
-                                cupidatat nulla esse cillum laborum occaecat nostrud sit dolor incididunt amet
-                                est occaecat nisi.</p>
+                            <p>Graduated with a strong foundation in problem-solving and analytical thinking, later
+                                pivoting into software development and full-stack engineering.</p>
                         </div>
                     </div>
+                    <!-- 
 
                     <div class="timeline__block">
                         <div class="timeline__bullet"></div>
@@ -175,7 +209,7 @@
                                 cupidatat nulla esse cillum laborum occaecat nostrud sit dolor incididunt amet
                                 est occaecat nisi.</p>
                         </div>
-                    </div>
+                    </div> -->
 
                 </div> <!-- end timeline -->
 
@@ -593,8 +627,8 @@
             <div class="column lg-3 md-5 tab-6 stack-on-550 contact-block">
                 <h3 class="text-pretitle">Reach me at</h3>
                 <p class="contact-links">
-                    <a href="mailto:sayhello@Abhijit.com" class="mailtoui">sayhello@Abhijit.com</a> <br>
-                    <a href="tel:+1975432345">+197 543 2345</a>
+                    <a href="mailto:abhijitongit@gmail.com" class="mailtoui">abhijitongit@gmail.com</a> <br>
+                    <a href="tel:+919749574031">+91 97495 74031</a>
                 </p>
             </div>
             <div class="column lg-4 md-5 tab-6 stack-on-550 contact-block">
@@ -608,9 +642,14 @@
                 </ul>
             </div>
             <div class="column lg-4 md-12 contact-block">
-                <a href="mailto:abhijitongit@gmail.com" class="mailtoui btn btn--medium u-fullwidth contact-btn">Say
-                    Hello.</a>
+                <p class="text-pretitle" style="margin-bottom: 1rem;">
+                    You’ve got growth to focus on — I’ll handle the tech.
+                </p>
+                <a href="mailto:abhijitongit@gmail.com" class="mailtoui btn btn--medium u-fullwidth contact-btn">
+                    Let’s Talk
+                </a>
             </div>
+
         </div> <!-- end contact-bottom -->
 
     </section> <!-- end contact -->
