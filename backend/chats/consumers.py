@@ -1,5 +1,6 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
+from chats.agent.agent_mod_1 import handle_user_message
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -13,7 +14,7 @@ class ChatConsumer(WebsocketConsumer):
         message = data["message"]
 
         # Example static response; replace with AI/logic later
-        response = f"You said: {message}"
+        response = handle_user_message(message) # f"You said: {message}"
 
         self.send(text_data=json.dumps({
             "message": response
