@@ -1,0 +1,14 @@
+[
+    {
+        "section": "About Me",
+        "content": "I am Abhijit, a backend developer with 3+ years experience in Python, Django, and AI integrations."
+    },
+    {
+        "title": "Portfolio Website",
+        "description": "Built a full-stack Django + React portfolio with AI chatbot and calendar scheduling."
+    },
+    {
+        "service": "LLM Integration",
+        "details": "Custom assistants using LangChain, Ollama, and RAG pipelines."
+    }
+]
