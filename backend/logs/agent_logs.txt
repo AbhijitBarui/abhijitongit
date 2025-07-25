@@ -1,0 +1,40 @@
+2025-07-24 12:17:30,915 INFO prompt_external_model took 2.125s
+2025-07-24 12:17:30,915 INFO validate_intent_results took 0.000s
+2025-07-24 12:17:30,915 INFO fetch_intent took 2.126s
+2025-07-24 12:17:30,915 INFO simple_reply_path took 0.000s
+2025-07-24 12:17:30,916 INFO select_flow took 0.000s
+2025-07-24 12:17:32,880 INFO prompt_external_model took 1.964s
+2025-07-24 12:17:32,880 INFO validate_user_output took 0.000s
+2025-07-24 12:17:32,881 INFO generate_output took 1.965s
+2025-07-24 12:17:32,881 INFO handle_user_message took 4.091s
+2025-07-25 06:06:24,822 INFO prompt_external_model took 2.153s
+2025-07-25 06:06:24,823 INFO validate_intent_results took 0.000s
+2025-07-25 06:06:24,824 INFO fetch_intent took 2.155s
+2025-07-25 06:06:24,824 INFO simple_reply_path took 0.000s
+2025-07-25 06:06:24,824 INFO select_flow took 0.000s
+2025-07-25 06:06:25,642 INFO prompt_external_model took 0.818s
+2025-07-25 06:06:25,642 INFO validate_user_output took 0.000s
+2025-07-25 06:06:25,642 INFO generate_output took 0.819s
+2025-07-25 06:06:25,643 INFO handle_user_message took 2.974s
+2025-07-25 06:11:20,734 INFO prompt_external_model took 0.964s
+2025-07-25 06:11:20,735 INFO [INTENT] User: hows the weather in Durgapur, west bengal? → Intent: {'parts': [{'text': '```json\n{\n  "flow": "Simple greetings",\n  "tool": "",\n  "parameters": {}\n}\n```'}], 'role': 'model'}
+2025-07-25 06:11:20,735 INFO validate_intent_results took 0.000s
+2025-07-25 06:11:20,735 INFO fetch_intent took 0.965s
+2025-07-25 06:11:20,735 INFO simple_reply_path took 0.000s
+2025-07-25 06:11:20,735 INFO [FLOW] Flow selected: Simple greetings
+Generated LLM Prompt:
+You are a friendly assistant.
+
+The user said: "hows the weather in Durgapur, west bengal?"
+
+Respond with a warm and welcoming greeting.
+2025-07-25 06:11:20,735 INFO select_flow took 0.000s
+2025-07-25 06:11:20,735 INFO select_flow took 0.000s
+2025-07-25 06:11:21,578 INFO prompt_external_model took 0.843s
+2025-07-25 06:11:21,579 INFO [OUTPUT] Final response to user:
+Hello there! Let me check the weather for you in Durgapur, West Bengal. Just a moment... 😊
+2025-07-25 06:11:21,579 INFO validate_user_output took 0.000s
+2025-07-25 06:11:21,579 INFO generate_output took 0.844s
+2025-07-25 06:11:21,579 INFO [SUMMARY] User: hows the weather in Durgapur, west bengal?
+Bot: Hello there! Let me check the weather for you in Durgapur, West Bengal. Just a moment... 😊
+2025-07-25 06:11:21,579 INFO handle_user_message took 1.809s
