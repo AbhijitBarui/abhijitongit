@@ -22,3 +22,5 @@ frontend/build/
 
 .env
 bootstrap_src
+backend/logs/agent_logs.txt
+backend/logs/agent_logs_copy.txt

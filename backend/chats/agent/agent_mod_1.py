@@ -362,10 +362,12 @@ def generate_output(output_llm_prompt: str) -> str:
 # main fnc
 @timeit
 def handle_user_message(user_prompt: str) -> str:
+    logger.info(f"[START] ------------------------------------>>>")
     intent = fetch_intent(user_prompt)
     llm_prompt = select_flow(user_prompt, intent)
     reply = generate_output(llm_prompt)
     logger.info(f"[SUMMARY] User: {user_prompt}\nBot: {reply.strip()}")
+    logger.info(f"[STOP] ------------------------------------>>>")
     return reply
 
 # script exec
