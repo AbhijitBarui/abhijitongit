@@ -44,12 +44,15 @@ llm_local = OllamaLLM(model="llama3")
 # Pre-build your FAISS index and store under `faiss_db`
 vector_db = FAISS.load_local("faiss_db", embedding_model, allow_dangerous_deserialization=True)
 
+VALID_FLOWS = {"Simple greetings", "RAG Vector DB", "MCP DB Toolbox"}
+
 
 
 ## FUNCTIONS
 
-# LOG DECORATOR
+# TOOLS ---------------------
 
+# logger
 def timeit(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -59,8 +62,6 @@ def timeit(fn):
         logger.info(f"{fn.__name__} took {elapsed:.3f}s")
         return result
     return wrapper
-
-# FIND USER INTENT
 
 # use Ollama model and fetch results using crafted prompt 
 @timeit
@@ -74,8 +75,8 @@ def prompt_ollama_model(prompt: str) -> str:
         logger.error(f"Error calling Ollama: {e}")
         return ""
 
-@timeit
 # use API LLM and fetch results using crafted prompt
+@timeit
 def prompt_external_model(prompt: str) -> str:
     if not EXTERNAL_API_KEY:
         logger.warning("No external API key set.")
@@ -93,9 +94,9 @@ def prompt_external_model(prompt: str) -> str:
         logger.error(f"Error calling external LLM: {e}")
     return ""
 
-# validate intent results returned - structure wise:
-VALID_FLOWS = {"Simple greetings", "RAG Vector DB", "MCP DB Toolbox"}
+# FIND USER INTENT -------------------
 
+# validate intent results returned - structure wise:
 @timeit
 def validate_intent_results(intent: Any) -> Dict[str, Any]:
     if not isinstance(intent, dict):
@@ -163,7 +164,7 @@ If no match, return:
 
 
 
-# VECTOR RAG PROCESSES
+# VECTOR RAG PROCESSES -------------------------
 
 # prompt to vector embedding
 @timeit
@@ -198,7 +199,7 @@ Summarize these examples and answer the user's question in a concise, friendly w
 
 
 
-# SIMPLE REPLY PROCESS
+# SIMPLE REPLY PROCESS ----------------------------
 
 # follow process of simple reply generation: 
 # userprompt + simple generation intent result = Output LLM Prompt in return
@@ -214,7 +215,8 @@ Respond with a warm and welcoming greeting.
 
 
 
-# MCP PROCESSES
+# MCP PROCESSES --------------------------
+
 ALLOWED_TOOLS = {
     "create-event": ["summary", "start_time", "end_time", "attendees"],
     "list-events": ["date"],
@@ -303,10 +305,9 @@ def mcp_path(user_prompt: str, intent_results: Dict[str, Any]) -> str:
 
 
 
-# USE INTENT CHOOSE FLOW
+# USE INTENT CHOOSE FLOW -------------------------
 
 # decide flow and get output llm prompt based on intent
-@timeit
 @timeit
 def select_flow(user_prompt: str, intent_results: Dict[str, Any]) -> str:
     flow = intent_results.get("flow")
@@ -322,7 +323,7 @@ def select_flow(user_prompt: str, intent_results: Dict[str, Any]) -> str:
 
 
 
-# VALIDATE AND SEND OUTPUT TO USER
+# VALIDATE AND SEND OUTPUT TO USER -----------------------
 
 # validate the output of user output LLM
 @timeit
@@ -356,6 +357,8 @@ def generate_output(output_llm_prompt: str) -> str:
     logger.info(f"[OUTPUT] Final response to user:\n{result.strip()}")
     return validate_user_output(result)
 
+
+
 # main fnc
 @timeit
 def handle_user_message(user_prompt: str) -> str:
@@ -365,7 +368,7 @@ def handle_user_message(user_prompt: str) -> str:
     logger.info(f"[SUMMARY] User: {user_prompt}\nBot: {reply.strip()}")
     return reply
 
-# 
+# script exec
 if __name__ == "__main__":
     while True:
         user_in = input("You: ")
