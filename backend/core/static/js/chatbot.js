@@ -6,6 +6,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeBtn = document.querySelector(".chatbot-close");
     const sendBtn = document.querySelector(".chatbot-send");
 
+    // WebSocket setup
+    // const socket = new WebSocket("ws://" + window.location.host + "/ws/chat/");
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/chat/`);
+
+
     // Stop if any required elements are missing
     if (!modal || !input || !chatWindow || !toggleBtn || !sendBtn || !closeBtn) return;
 
@@ -32,8 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sendMessage();
     });
 
-    // WebSocket setup
-    const socket = new WebSocket("ws://" + window.location.host + "/ws/chat/");
+
 
     socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
