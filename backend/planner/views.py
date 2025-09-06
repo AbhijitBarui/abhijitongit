@@ -100,9 +100,16 @@ from django.forms import modelform_factory
 from django.contrib import messages
 
 # ----- TASKS -----
+# def tasks_list(request):
+#     qs = Task.objects.select_related("group").order_by("group__name","-priority","title")
+#     return render(request, "planner/tasks_list.html", {"tasks": qs})
 def tasks_list(request):
     qs = Task.objects.select_related("group").order_by("group__name","-priority","title")
+    q = request.GET.get("q")
+    if q:
+        qs = qs.filter(title__icontains=q)
     return render(request, "planner/tasks_list.html", {"tasks": qs})
+
 
 @require_http_methods(["GET","POST"])
 def task_edit(request, pk):
@@ -169,6 +176,25 @@ def group_delete(request, pk):
     return redirect("planner:groups-list")
 
 # ----- AGENDAS -----
+# def agendas_list(request):
+#     qs = DayPlan.objects.order_by("-date").prefetch_related("items")
+#     return render(request, "planner/agendas_list.html", {"plans": qs})
+
 def agendas_list(request):
-    qs = DayPlan.objects.order_by("-date").prefetch_related("items")
-    return render(request, "planner/agendas_list.html", {"plans": qs})
+    plans = DayPlan.objects.order_by("-date").prefetch_related("items")
+    rows = []
+    for p in plans:
+        total = p.items.count()
+        done = p.items.filter(done=True).count()
+        rows.append({"plan": p, "total": total, "done": done})
+    return render(request, "planner/agendas_list.html", {"rows": rows})
+
+
+
+@require_http_methods(["POST"])
+def task_purge(request, pk):
+    obj = get_object_or_404(Task, pk=pk)
+    PlanItem.objects.filter(task=obj).delete()
+    obj.delete()
+    messages.success(request, "Task and its scheduled items were permanently deleted.")
+    return redirect("planner:tasks-list")

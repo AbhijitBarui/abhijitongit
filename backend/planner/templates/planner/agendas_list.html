@@ -11,12 +11,14 @@
         </tr>
     </thead>
     <tbody>
-        {% for p in plans %}
+        {% for r in rows %}
         <tr>
-            <td>{{ p.date }}</td>
-            <td>{{ p.items.count }}</td>
-            <td>{{ p.items.filter(done=True).count }}</td>
-            <td><a class="btn btn-sm btn-outline-primary" href="/agenda">Open</a></td>
+            <td>{{ r.plan.date }}</td>
+            <td>{{ r.total }}</td>
+            <td>{{ r.done }}</td>
+            <td>
+                <a class="btn btn-sm btn-outline-primary" href="/agenda">Open</a>
+            </td>
         </tr>
         {% empty %}
         <tr>

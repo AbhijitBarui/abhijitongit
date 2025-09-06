@@ -1,40 +1,53 @@
 {% extends "planner/base_planner.html" %}
 {% block content %}
-<h4 class="mb-3">Tasks</h4>
-<a class="btn btn-sm btn-success mb-2" href="/agenda/add/task/">+ Add Task</a>
-<table class="table table-sm align-middle">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Group</th>
-            <th>Dur</th>
-            <th>P</th>
-            <th>Desired</th>
-            <th>Deadline</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for t in tasks %}
-        <tr>
-            <td>{{ t.title }}</td>
-            <td>{{ t.group.name }}</td>
-            <td>{{ t.duration_min }}m</td>
-            <td>P{{ t.priority }}</td>
-            <td>{{ t.get_desired_time_display|default:t.desired_time }}</td>
-            <td>{{ t.deadline|default:"—" }}</td>
-            <td class="text-nowrap">
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'planner:task-edit' t.id %}">Edit</a>
-                <form class="d-inline" method="post" action="{% url 'planner:task-delete' t.id %}">
-                    {% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7" class="text-center text-muted">No tasks</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Tasks</h4>
+    <a class="btn btn-success btn-sm" href="/agenda/add/task/">+ Add Task</a>
+</div>
+
+<!-- Optional quick search/filter (GET) -->
+<form class="row g-2 mb-3" method="get">
+    <div class="col-8 col-sm-6">
+        <input class="form-control form-control-sm" name="q" value="{{ request.GET.q }}" placeholder="Search title…">
+    </div>
+    <div class="col-4 col-sm-3">
+        <button class="btn btn-outline-secondary btn-sm w-100">Search</button>
+    </div>
+</form>
+
+<div class="row g-3">
+    {% for t in tasks %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="card-title mb-1">{{ t.title }}</h6>
+                    {% if not t.active %}<span class="badge text-bg-warning">inactive</span>{% endif %}
+                </div>
+                <div class="mb-2 small text-muted">
+                    <span class="badge rounded-pill text-bg-light border me-1">{{ t.group.name }}</span>
+                    <span class="me-2">{{ t.duration_min }}m</span>
+                    <span class="me-2">P{{ t.priority }}</span>
+                    <span class="me-2">{{ t.get_desired_time_display|default:t.desired_time }}</span>
+                    <span class="me-2">{{ t.deadline|default:"—" }}</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'planner:task-edit' t.id %}">Edit</a>
+                    <form method="post" action="{% url 'planner:task-delete' t.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-secondary btn-sm">Delete</button>
+                    </form>
+                    {# Keep purge if you added it #}
+                    {# <form method="post" action="{% url 'planner:task-purge' t.id %}"
+                        onsubmit="return confirm('Also delete scheduled items?')">
+                        {% csrf_token %}<button class="btn btn-outline-danger btn-sm">Force delete</button>
+                    </form> #}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-4">No tasks</div>
+    {% endfor %}
+</div>
 {% endblock %}

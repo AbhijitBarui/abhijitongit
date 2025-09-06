@@ -25,5 +25,7 @@ urlpatterns = [
 
     path("manage/agendas/", views.agendas_list, name="agendas-list"),
 
+    path("manage/tasks/<int:pk>/purge/", views.task_purge, name="task-purge"),
+
 
 ]
