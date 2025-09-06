@@ -3,7 +3,7 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h4 class="mb-0">Edit Agenda — {{ date }}</h4>
     <div>
-        <button form="agendaForm" class="btn btn-primary">Save</button>
+        <button type="submit" form="agendaForm" class="btn btn-primary">Save</button>
         <a href="/agenda" class="btn btn-outline-secondary">Cancel</a>
     </div>
 </div>
@@ -27,17 +27,16 @@
                         </thead>
                         <tbody id="timelineBody">
                             {% for it in items %}
-                            <tr data-task-id="{{ it.task.id }}">
+                            <tr data-item-id="{{ it.id }}" data-task-id="{{ it.task.id }}">
                                 <td><input class="form-control form-control-sm" value="{{ it.start_hhmm }}"></td>
                                 <td><input class="form-control form-control-sm" value="{{ it.end_hhmm }}"></td>
-                                <td>{{ it.task.title }} <small class="text-muted">[[
-                                        {{it.group_name|default:it.task.group.name }}
-                                        ]]</small></td>
+                                <td>{{ it.task.title }} <small class="text-muted">[{{ it.group_name }}]</small></td>
                                 <td><button type="button" class="btn btn-sm btn-outline-danger"
                                         onclick="removeRow(this)">✕</button></td>
                             </tr>
                             {% endfor %}
                         </tbody>
+
                     </table>
                 </div>
             </div>
@@ -101,12 +100,14 @@
         const row = document.createElement('tr');
         row.setAttribute('data-task-id', taskId);
         row.innerHTML = `
-      <td><input class="form-control form-control-sm" value="09:00"></td>
-      <td><input class="form-control form-control-sm" value="10:00"></td>
-      <td>${title}</td>
-      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">✕</button></td>`;
+    <td><input class="form-control form-control-sm" value="09:00"></td>
+    <td><input class="form-control form-control-sm" value="10:00"></td>
+    <td>${title}</td>
+    <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">✕</button></td>`;
         body.appendChild(row);
     }
+
+
 
     function removeRow(el) { el.closest('tr').remove(); }
 
@@ -129,13 +130,22 @@
         const items = rows.map((tr, idx) => {
             const inputs = tr.querySelectorAll('input');
             return {
+                item_id: tr.getAttribute('data-item-id') || null,
                 task_id: tr.getAttribute('data-task-id'),
                 start: inputs[0].value,
                 end: inputs[1].value,
                 order: idx
             };
         });
+
+        console.log('[editor] serializing', items.length, 'row(s):', items);
+        if (items.length === 0) {
+            console.warn('[editor] No rows to save');
+            // optional: prevent submit if you want
+            // e.preventDefault(); return;
+        }
         itemsInput.value = JSON.stringify(items);
     });
+
 </script>
 {% endblock %}
