@@ -24,6 +24,23 @@ class Task(models.Model):
     desired_time = models.CharField(max_length=20, choices=DESIRED_CHOICES, default="any")
     deadline = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=True)
+    RECURRENCE = [
+        ("none","One-time"),
+        ("daily","Daily"),
+        ("weekly","Weekly"),
+        ("weekdays","Weekdays (Mon–Fri)"),
+        ("weekends","Weekends (Sat–Sun)"),
+        ("monthly","Monthly (by day-of-month)"),
+        ("custom","Custom RRULE-ish"),   # optional
+    ]
+    recurrence = models.CharField(max_length=16, choices=RECURRENCE, default="none")
+    recur_interval = models.PositiveIntegerField(default=1)             # every N days/weeks/months
+    recur_weekdays = models.CharField(max_length=20, blank=True)        # e.g. "MO,TU,WE"
+    recur_monthday = models.PositiveIntegerField(null=True, blank=True) # 1..31
+    start_date = models.DateField(null=True, blank=True)
+    end_date   = models.DateField(null=True, blank=True)
+    skip_dates = models.JSONField(default=list, blank=True)             # ["2025-09-10", ...]
+    rrule_text = models.CharField(max_length=160, blank=True)           # for "custom" if you want later
 
     def __str__(self):
         return self.title

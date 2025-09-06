@@ -223,12 +223,23 @@ def agenda_edit(request):
         return redirect("planner:agenda-today")
 
     # GET – unchanged
-    tasks = Task.objects.filter(active=True).select_related("group").order_by("-priority", "duration_min")
+    # tasks = Task.objects.filter(active=True).select_related("group").order_by("-priority", "duration_min")
+    # views.py (inside agenda_edit GET branch)
+    from .services.recurrence import occurs_on
+    today = d
+    all_tasks = list(Task.objects.filter(active=True).select_related("group"))
+    eligible = [t for t in all_tasks if occurs_on(t, today)]
+    # order: eligible first, then others
+    tasks = sorted(all_tasks, key=lambda t: (t not in eligible, -t.priority, t.duration_min))
+    
     items = plan.items.select_related("task").all()
     groups = TaskGroup.objects.all().order_by("name")
     return render(request, "planner/agenda_edit.html", {
         "date": d, "items": items, "tasks": tasks, "groups": groups
     })
+
+    
+
 
 
 def add_entry(request):
