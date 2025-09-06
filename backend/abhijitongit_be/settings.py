@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'channels',
     'chats',
+    'planner',
 ]
 
 ASGI_APPLICATION = "abhijitongit_be.asgi.application"

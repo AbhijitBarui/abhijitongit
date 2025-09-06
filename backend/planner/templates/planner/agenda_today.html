@@ -1,0 +1,40 @@
+{% extends "planner/base_planner.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Agenda — {{ date }}</h4>
+    <a class="btn btn-outline-secondary btn-sm" href="/agenda">Jump to today</a>
+</div>
+
+{% if not plan or not items %}
+<div class="text-center py-5">
+    <p class="lead mb-3">No agenda yet for today.</p>
+    <a href="/agenda/edit/" class="btn btn-primary btn-lg">Create today’s agenda</a>
+</div>
+{% else %}
+<form method="post" action="">
+    {% csrf_token %}
+    <ul class="list-group shadow-sm">
+        {% for it in items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="{% if it.done %}text-decoration-line-through text-muted{% endif %}">
+                <span class="fw-semibold">{{ it.start_hhmm }}–{{ it.end_hhmm }}</span>
+                &nbsp; <span class="text-muted">[{{ it.group_name|default:it.task.group.name }}]</span>
+                {{ it.task.title }}
+            </div>
+            <form method="post" action="{% url 'planner:toggle-done' it.id %}">
+                {% csrf_token %}
+                <input type="checkbox" class="form-check-input" {% if it.done %}checked{% endif %}
+                    onchange="this.form.submit()">
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</form>
+{% endif %}
+
+<div class="fab-stack">
+    <a class="btn btn-primary fab" title="Edit" href="/agenda/edit/">✎</a>
+    <a class="btn btn-success fab" title="Add" href="/agenda/add/">＋</a>
+    <a class="btn btn-secondary fab" title="Manage" href="/agenda/manage/">☰</a>
+</div>
+{% endblock %}

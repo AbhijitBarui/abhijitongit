@@ -1,0 +1,30 @@
+{% extends "planner/base_planner.html" %}
+{% block content %}
+<h4 class="mb-4">Manage</h4>
+<div class="row g-3">
+    <div class="col-md-3">
+        <a class="card card-body text-center text-decoration-none" href="/agenda/add/task/">
+            <div class="h5 mb-1">Tasks</div>
+            <small class="text-muted">Add new tasks</small>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a class="card card-body text-center text-decoration-none" href="/agenda/add/group/">
+            <div class="h5 mb-1">Task Groups</div>
+            <small class="text-muted">Create groups</small>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a class="card card-body text-center text-decoration-none" href="/agenda">
+            <div class="h5 mb-1">Agendas</div>
+            <small class="text-muted">Open today</small>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a class="card card-body text-center text-decoration-none disabled" href="#">
+            <div class="h5 mb-1">History</div>
+            <small class="text-muted">Coming soon</small>
+        </a>
+    </div>
+</div>
+{% endblock %}

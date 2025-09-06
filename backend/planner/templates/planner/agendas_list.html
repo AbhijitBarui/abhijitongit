@@ -1,0 +1,28 @@
+{% extends "planner/base_planner.html" %}
+{% block content %}
+<h4 class="mb-3">Agendas</h4>
+<table class="table table-sm align-middle">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Done</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in plans %}
+        <tr>
+            <td>{{ p.date }}</td>
+            <td>{{ p.items.count }}</td>
+            <td>{{ p.items.filter(done=True).count }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/agenda">Open</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="text-center text-muted">No agendas saved</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

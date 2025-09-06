@@ -1,0 +1,139 @@
+{% extends "planner/base_planner.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Edit Agenda — {{ date }}</h4>
+    <div>
+        <button form="agendaForm" class="btn btn-primary">Save</button>
+        <a href="/agenda" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form id="agendaForm" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="items_json" id="items_json">
+            <div class="card">
+                <div class="card-header">Today’s timeline</div>
+                <div class="card-body p-0">
+                    <table class="table mb-0 align-middle" id="timelineTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:20%">Start</th>
+                                <th style="width:20%">End</th>
+                                <th>Task</th>
+                                <th style="width:1%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="timelineBody">
+                            {% for it in items %}
+                            <tr data-task-id="{{ it.task.id }}">
+                                <td><input class="form-control form-control-sm" value="{{ it.start_hhmm }}"></td>
+                                <td><input class="form-control form-control-sm" value="{{ it.end_hhmm }}"></td>
+                                <td>{{ it.task.title }} <small class="text-muted">[{{ it.group_name }}]</small></td>
+                                <td><button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="removeRow(this)">✕</button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Tasklist</span>
+                <div class="d-flex gap-2">
+                    <select id="groupFilter" class="form-select form-select-sm">
+                        <option value="">All groups</option>
+                        {% for g in groups %}
+                        <option value="{{ g.id }}">{{ g.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input id="searchBox" class="form-control form-control-sm" placeholder="Search title">
+                </div>
+            </div>
+            <div class="list-group list-group-flush" id="taskList" style="max-height:480px;overflow:auto">
+                {% for t in tasks %}
+                <button type="button"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    data-task-id="{{ t.id }}" data-group-id="{{ t.group.id }}">
+                    <div>
+                        <div class="fw-semibold">{{ t.title }}</div>
+                        <small class="text-muted">
+                            [{{ t.group.name }}] • {{ t.duration_min }}m • P{{ t.priority }} •
+                            {{ t.get_desired_time_display|default:t.desired_time }}
+                        </small>
+
+                    </div>
+                    <span class="btn btn-sm btn-outline-primary">Add</span>
+                </button>
+                {% endfor %}
+            </div>
+            <div class="card-footer text-end">
+                <a class="btn btn-sm btn-outline-success" href="/agenda/add/task/">+ New Task</a>
+                <a class="btn btn-sm btn-outline-secondary" href="/agenda/add/group/">+ New Group</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const taskButtons = Array.from(document.querySelectorAll('#taskList .list-group-item'));
+    const groupFilter = document.getElementById('groupFilter');
+    const searchBox = document.getElementById('searchBox');
+    const body = document.getElementById('timelineBody');
+    const itemsInput = document.getElementById('items_json');
+    const form = document.getElementById('agendaForm');
+
+    taskButtons.forEach(btn => btn.addEventListener('click', () => addTaskRow(btn)));
+
+    function addTaskRow(btn) {
+        const taskId = btn.getAttribute('data-task-id');
+        const title = btn.querySelector('.fw-semibold').innerText.trim();
+        const row = document.createElement('tr');
+        row.setAttribute('data-task-id', taskId);
+        row.innerHTML = `
+      <td><input class="form-control form-control-sm" value="09:00"></td>
+      <td><input class="form-control form-control-sm" value="10:00"></td>
+      <td>${title}</td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">✕</button></td>`;
+        body.appendChild(row);
+    }
+
+    function removeRow(el) { el.closest('tr').remove(); }
+
+    // filters
+    groupFilter.addEventListener('change', applyFilter);
+    searchBox.addEventListener('input', applyFilter);
+    function applyFilter() {
+        const gid = groupFilter.value;
+        const q = searchBox.value.toLowerCase();
+        taskButtons.forEach(btn => {
+            const matchesGroup = !gid || btn.getAttribute('data-group-id') === gid;
+            const matchesText = !q || btn.innerText.toLowerCase().includes(q);
+            btn.style.display = (matchesGroup && matchesText) ? '' : 'none';
+        });
+    }
+
+    // serialize rows to JSON before submit
+    form.addEventListener('submit', (e) => {
+        const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+        const items = rows.map((tr, idx) => {
+            const inputs = tr.querySelectorAll('input');
+            return {
+                task_id: tr.getAttribute('data-task-id'),
+                start: inputs[0].value,
+                end: inputs[1].value,
+                order: idx
+            };
+        });
+        itemsInput.value = JSON.stringify(items);
+    });
+</script>
+{% endblock %}

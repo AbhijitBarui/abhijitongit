@@ -1,0 +1,40 @@
+{% extends "planner/base_planner.html" %}
+{% block content %}
+<h4 class="mb-3">Tasks</h4>
+<a class="btn btn-sm btn-success mb-2" href="/agenda/add/task/">+ Add Task</a>
+<table class="table table-sm align-middle">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Group</th>
+            <th>Dur</th>
+            <th>P</th>
+            <th>Desired</th>
+            <th>Deadline</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tasks %}
+        <tr>
+            <td>{{ t.title }}</td>
+            <td>{{ t.group.name }}</td>
+            <td>{{ t.duration_min }}m</td>
+            <td>P{{ t.priority }}</td>
+            <td>{{ t.get_desired_time_display|default:t.desired_time }}</td>
+            <td>{{ t.deadline|default:"—" }}</td>
+            <td class="text-nowrap">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'planner:task-edit' t.id %}">Edit</a>
+                <form class="d-inline" method="post" action="{% url 'planner:task-delete' t.id %}">
+                    {% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center text-muted">No tasks</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

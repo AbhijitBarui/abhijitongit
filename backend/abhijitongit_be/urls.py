@@ -11,6 +11,8 @@ urlpatterns = [
     
     # APIs under separate namespace
     path('api/', include(('core.api_urls', 'core'), namespace='core-api')),
+
+    path('agenda/', include('planner.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
