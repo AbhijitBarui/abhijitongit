@@ -116,33 +116,33 @@ def task_edit(request, pk):
         form = Form(instance=obj)
     return render(request, "planner/simple_form.html", {"form": form, "title": f"Edit Task: {obj.title}"})
 
-# @require_http_methods(["POST"])
-# def task_delete(request, pk):
-#     get_object_or_404(Task, pk=pk).delete()
-#     messages.success(request, "Deleted")
-#     return redirect("planner:tasks-list")
-
-from django.db.models.deletion import ProtectedError
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
-from .models import Task, PlanItem
-
 @require_http_methods(["POST"])
 def task_delete(request, pk):
-    obj = get_object_or_404(Task, pk=pk)
-    try:
-        obj.delete()
-        messages.success(request, "Task deleted.")
-    except ProtectedError:
-        # Soft-delete when the task is referenced in any plan
-        cnt = PlanItem.objects.filter(task=obj).count()
-        obj.active = False
-        obj.save(update_fields=["active"])
-        messages.warning(
-            request,
-            f"Task is used in {cnt} agenda item(s); marked as inactive instead."
-        )
+    get_object_or_404(Task, pk=pk).delete()
+    messages.success(request, "Deleted")
     return redirect("planner:tasks-list")
+
+# from django.db.models.deletion import ProtectedError
+# from django.contrib import messages
+# from django.shortcuts import get_object_or_404, redirect
+# from .models import Task, PlanItem
+
+# @require_http_methods(["POST"])
+# def task_delete(request, pk):
+#     obj = get_object_or_404(Task, pk=pk)
+#     try:
+#         obj.delete()
+#         messages.success(request, "Task deleted.")
+#     except ProtectedError:
+#         # Soft-delete when the task is referenced in any plan
+#         cnt = PlanItem.objects.filter(task=obj).count()
+#         obj.active = False
+#         obj.save(update_fields=["active"])
+#         messages.warning(
+#             request,
+#             f"Task is used in {cnt} agenda item(s); marked as inactive instead."
+#         )
+#     return redirect("planner:tasks-list")
 
 
 # ----- GROUPS -----
