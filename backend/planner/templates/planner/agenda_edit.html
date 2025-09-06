@@ -30,7 +30,9 @@
                             <tr data-task-id="{{ it.task.id }}">
                                 <td><input class="form-control form-control-sm" value="{{ it.start_hhmm }}"></td>
                                 <td><input class="form-control form-control-sm" value="{{ it.end_hhmm }}"></td>
-                                <td>{{ it.task.title }} <small class="text-muted">[{{ it.group_name }}]</small></td>
+                                <td>{{ it.task.title }} <small class="text-muted">[[
+                                        {{it.group_name|default:it.task.group.name }}
+                                        ]]</small></td>
                                 <td><button type="button" class="btn btn-sm btn-outline-danger"
                                         onclick="removeRow(this)">✕</button></td>
                             </tr>
