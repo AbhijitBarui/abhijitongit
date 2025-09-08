@@ -61,7 +61,7 @@
                 {% for t in tasks %}
                 <button type="button"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                    data-task-id="{{ t.id }}" data-group-id="{{ t.group.id }}">
+                    data-task-id="{{ t.id }}" data-group-id="{{ t.group.id }}" data-duration="{{ t.duration_min }}">
                     <div>
                         <div class="fw-semibold">{{ t.title }}</div>
                         <small class="text-muted">
@@ -92,24 +92,89 @@
     const itemsInput = document.getElementById('items_json');
     const form = document.getElementById('agendaForm');
 
+    // --- time utils ---
+    function parseHHMM(s) {
+        if (!s || !/^\d{2}:\d{2}$/.test(s)) return null;
+        const [h, m] = s.split(':').map(x => parseInt(x, 10));
+        if (h < 0 || h > 24 || m < 0 || m > 59) return null;
+        return h * 60 + m;
+    }
+    function fmt(mm) {
+        mm = Math.max(0, Math.min(24 * 60, mm | 0));
+        const h = Math.floor(mm / 60), m = mm % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+    function addMin(hhmm, delta) {
+        const base = typeof hhmm === 'number' ? hhmm : parseHHMM(hhmm);
+        if (base == null) return null;
+        return fmt(base + delta);
+    }
+
+    // Keep track of the end time of the last *added* row
+    let lastAddedEnd = (() => {
+        // if there are existing rows, start from the last row's end
+        const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+        if (rows.length) {
+            const last = rows[rows.length - 1];
+            const endVal = last.querySelectorAll('input')[1].value;
+            const endMin = parseHHMM(endVal);
+            if (endMin != null) return fmt(endMin);
+        }
+        return "00:00";
+    })();
+
+
     taskButtons.forEach(btn => btn.addEventListener('click', () => addTaskRow(btn)));
 
     function addTaskRow(btn) {
         const taskId = btn.getAttribute('data-task-id');
         const title = btn.querySelector('.fw-semibold').innerText.trim();
+        const dur = parseInt(btn.getAttribute('data-duration') || '60', 10);
+
+        const start = lastAddedEnd || "00:00";
+        const end = addMin(start, dur) || "00:00";
+
         const row = document.createElement('tr');
         row.setAttribute('data-task-id', taskId);
         row.innerHTML = `
-    <td><input class="form-control form-control-sm" value="09:00"></td>
-    <td><input class="form-control form-control-sm" value="10:00"></td>
+    <td><input class="form-control form-control-sm" value="${start}"></td>
+    <td><input class="form-control form-control-sm" value="${end}"></td>
     <td>${title}</td>
     <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">✕</button></td>`;
         body.appendChild(row);
+
+        // update chaining anchor based on the *added* row
+        lastAddedEnd = end;
+
+        // attach listeners so manual edits also trigger sorting
+        attachTimeListeners(row);
+
+        // auto-sort by start time now that a row is added
+        sortRowsByStart();
     }
 
 
 
-    function removeRow(el) { el.closest('tr').remove(); }
+
+    function removeRow(el) {
+        const tr = el.closest('tr');
+        const isLast = (tr === body.lastElementChild);
+        tr.remove();
+        // If we removed the last DOM row, recompute anchor from new last row; otherwise keep lastAddedEnd as-is
+        if (isLast) {
+            const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+            lastAddedEnd = rows.length
+                ? rows[rows.length - 1].querySelectorAll('input')[1].value
+                : "00:00";
+        }
+    }
+
+    (function initSort() {
+        const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+        rows.forEach(attachTimeListeners);
+        sortRowsByStart();
+    })();
+
 
     // filters
     groupFilter.addEventListener('change', applyFilter);
@@ -137,15 +202,44 @@
                 order: idx
             };
         });
-
         console.log('[editor] serializing', items.length, 'row(s):', items);
-        if (items.length === 0) {
-            console.warn('[editor] No rows to save');
-            // optional: prevent submit if you want
-            // e.preventDefault(); return;
-        }
         itemsInput.value = JSON.stringify(items);
     });
+
+
+
+
+
+
+    // --- helpers to read/sort by time ---
+    function rowTimes(tr) {
+        const [startInput, endInput] = tr.querySelectorAll('input');
+        const s = parseHHMM(startInput.value);
+        const e = parseHHMM(endInput.value);
+        return { s: s ?? 0, e: e ?? 0 };
+    }
+
+    function sortRowsByStart() {
+        const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+        rows.sort((a, b) => {
+            const ta = rowTimes(a), tb = rowTimes(b);
+            if (ta.s !== tb.s) return ta.s - tb.s;         // primary: start time
+            if (ta.e !== tb.e) return ta.e - tb.e;         // tie-breaker: end time
+            // final tie-breaker: keep stable by DOM position (no change)
+            return 0;
+        });
+        // Re-append in sorted order
+        rows.forEach(r => body.appendChild(r));
+    }
+
+    // When any time field changes, re-sort
+    function attachTimeListeners(tr) {
+        tr.querySelectorAll('input').forEach(inp => {
+            inp.addEventListener('change', sortRowsByStart);
+            inp.addEventListener('blur', sortRowsByStart);
+        });
+    }
+
 
 </script>
 {% endblock %}
