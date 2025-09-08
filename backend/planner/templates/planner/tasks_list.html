@@ -37,11 +37,10 @@
                         {% csrf_token %}
                         <button class="btn btn-outline-secondary btn-sm">Delete</button>
                     </form>
-                    {# Keep purge if you added it #}
-                    {# <form method="post" action="{% url 'planner:task-purge' t.id %}"
+                    <form method="post" action="{% url 'planner:task-purge' t.id %}"
                         onsubmit="return confirm('Also delete scheduled items?')">
                         {% csrf_token %}<button class="btn btn-outline-danger btn-sm">Force delete</button>
-                    </form> #}
+                    </form>
                 </div>
             </div>
         </div>
