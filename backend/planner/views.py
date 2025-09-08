@@ -18,13 +18,127 @@ def _today():
     return timezone.localdate()
 
 
+# @require_http_methods(["GET"])
+# def agenda_today(request):
+#     d = _today()
+#     plan = DayPlan.objects.filter(date=d).first()
+#     items = plan.items.select_related("task").all() if plan else []
+#     return render(request, "planner/agenda_today.html", {"date": d, "plan": plan, "items": items})
+
+# def agenda_today(request):
+#     d = _today()
+#     plan, created = DayPlan.objects.get_or_create(date=d)
+
+#     if created and not plan.items.exists():
+#         necessities = TaskGroup.objects.get_or_create(name="Necessities")[0]
+
+#         deep_sleep = Task.objects.get(title="Deep Sleep")
+#         light_sleep = Task.objects.get(title="Light Sleep")
+
+#         PlanItem.objects.bulk_create([
+#             PlanItem(plan=plan, task=deep_sleep, group_name=necessities.name,
+#                      start_hhmm="00:00", end_hhmm="06:00", order=0),
+#             PlanItem(plan=plan, task=light_sleep, group_name=necessities.name,
+#                      start_hhmm="22:00", end_hhmm="23:59", order=999),
+#         ])
+
+
+
+# planner/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from .models import DayPlan, PlanItem, Task, TaskGroup
+
+# --- helper: "today" in active/local timezone ---
+def _today():
+    # If you later activate per-user TZ, localdate() will honor it.
+    return timezone.localdate()
+
+# --- helper: ensure the two canonical sleep tasks exist ---
+def _ensure_sleep_tasks():
+    group, _ = TaskGroup.objects.get_or_create(name="Necessities")
+    deep, _ = Task.objects.get_or_create(
+        title="Deep Sleep",
+        defaults=dict(
+            group=group,
+            duration_min=360,                     # 6h
+            priority=5,
+            desired_time="night",
+            recurrence="daily",
+            active=True,
+            description_type="none",
+        ),
+    )
+    light, _ = Task.objects.get_or_create(
+        title="Light Sleep",
+        defaults=dict(
+            group=group,
+            duration_min=120,                     # 2h
+            priority=5,
+            desired_time="night",
+            recurrence="daily",
+            active=True,
+            description_type="none",
+        ),
+    )
+    return deep, light, group.name
+
+# --- helper: seed a new plan with sleep blocks (idempotent) ---
+def _seed_sleep_blocks(plan: DayPlan):
+    deep, light, group_name = _ensure_sleep_tasks()
+
+    # If there are *any* items already, don't seed (prevents duplicates)
+    if plan.items.exists():
+        return
+
+    # Create two plan items
+    PlanItem.objects.bulk_create([
+        PlanItem(
+            plan=plan, task=deep, group_name=group_name,
+            start_hhmm="00:00", end_hhmm="06:00", order=0, done=False
+        ),
+        PlanItem(
+            plan=plan, task=light, group_name=group_name,
+            start_hhmm="22:00", end_hhmm="23:59", order=999, done=False
+        ),
+    ])
+
+# --- helper: sort items (treat "00:00" end as 24:00 for ordering) ---
+def _hhmm_to_min(hhmm: str) -> int:
+    try:
+        h, m = hhmm.split(":")
+        return int(h) * 60 + int(m)
+    except Exception:
+        return 0
+
+def _sort_key(item: PlanItem):
+    s = _hhmm_to_min(item.start_hhmm or "00:00")
+    e = _hhmm_to_min(item.end_hhmm or "00:00")
+    # If an item ends exactly at 00:00, interpret it as 24:00 for same-day ordering
+    if item.end_hhmm == "00:00":
+        e = 24 * 60
+    return (s, e, item.order, item.id or 0)
+
+# ========== VIEW ==========
 @require_http_methods(["GET"])
 def agenda_today(request):
     d = _today()
-    plan = DayPlan.objects.filter(date=d).first()
-    items = plan.items.select_related("task").all() if plan else []
-    return render(request, "planner/agenda_today.html", {"date": d, "plan": plan, "items": items})
+    plan, created = DayPlan.objects.get_or_create(date=d)
 
+    # If this is a new day plan, seed the sleep blocks once
+    if created:
+        _seed_sleep_blocks(plan)
+
+    # Fetch items ordered for display
+    items = sorted(plan.items.select_related("task").all(), key=_sort_key)
+
+    ctx = {
+        "date": d,
+        "plan": plan,
+        "items": items,
+    }
+    return render(request, "planner/agenda_today.html", ctx)
 
 def _has_overlaps(rows):
     """rows: [{'start': 'HH:MM', 'end': 'HH:MM', ...}]"""
