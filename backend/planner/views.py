@@ -8,6 +8,8 @@ from django.utils import timezone
 from .models import DayPlan, PlanItem, Task, TaskGroup
 from .forms import TaskForm, TaskGroupForm
 from django.contrib import messages
+from datetime import timedelta
+from django.db.models import Count, Q
 
 def _today():
     return timezone.localdate()
@@ -174,9 +176,29 @@ def agenda_edit(request):
     
     items = plan.items.select_related("task").all()
     groups = TaskGroup.objects.all().order_by("name")
+
+    today = d
+    window = today + timedelta(days=7)
+
+    unscheduled_due = (
+        Task.objects.filter(active=True, deadline_at__isnull=False,
+                            deadline_at__date__lte=window)
+            .annotate(scheduled_count=Count(
+                "planitem",
+                filter=Q(planitem__plan__date__gte=today)
+            ))
+            .filter(scheduled_count=0)   # not scheduled today or later
+            .select_related("group")
+            .order_by("-priority", "deadline_at")
+    )
+
     return render(request, "planner/agenda_edit.html", {
-        "date": d, "items": items, "tasks": tasks, "groups": groups
+        "date": d, "items": items, "tasks": tasks, "groups": groups,
+        "unscheduled_due": unscheduled_due,   # NEW
     })
+    # return render(request, "planner/agenda_edit.html", {
+    #     "date": d, "items": items, "tasks": tasks, "groups": groups
+    # })
 
     
 

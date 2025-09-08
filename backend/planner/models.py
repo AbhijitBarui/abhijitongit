@@ -23,6 +23,7 @@ class Task(models.Model):
     priority = models.IntegerField(default=3)  # 1–5
     desired_time = models.CharField(max_length=20, choices=DESIRED_CHOICES, default="any")
     deadline = models.DateField(null=True, blank=True)
+    deadline_at = models.DateTimeField(null=True, blank=True)  
     active = models.BooleanField(default=True)
     RECURRENCE = [
         ("none","One-time"),

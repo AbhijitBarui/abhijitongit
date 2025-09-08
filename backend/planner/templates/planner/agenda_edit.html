@@ -18,10 +18,47 @@
     </div>
 </div>
 
+
+
 <!-- Hidden alert; we’ll toggle it via JS -->
 <div id="overlapAlert" class="alert alert-danger d-none" role="alert">
     Overlapping tasks detected. Please fix the highlighted rows before saving.
 </div>
+
+{% if unscheduled_due %}
+<div class="alert alert-danger d-flex align-items-start" role="alert">
+    <div class="me-3">⚠️</div>
+    <div class="flex-grow-1">
+        <div class="fw-semibold mb-1">Important pending tasks — schedule before deadline:</div>
+        <ul class="list-unstyled mb-0">
+            {% for t in unscheduled_due %}
+            <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                <div class="me-3">
+                    <div class="fw-semibold">{{ t.title }}</div>
+                    <div class="small text-muted">
+                        [{{ t.group.name }}] • P{{ t.priority }}
+                        • Due {{ t.deadline_at|date:"D, M j, Y" }} at {{ t.deadline_at|date:"H:i" }}
+                        {% with mins=t.duration_min %}
+                        • {{ mins }}m
+                        {% endwith %}
+                        {% if t.deadline_at|date:"Y-m-d" == date|date:"Y-m-d" %}
+                        <span class="badge text-bg-danger ms-2">Due today</span>
+                        {% elif t.deadline_at < date|add:"1 day" %} <span class="badge text-bg-danger ms-2">
+                            Overdue</span>
+                            {% endif %}
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger urgent-add-btn" data-task-id="{{ t.id }}"
+                    data-duration="{{ t.duration_min }}">
+                    Add to today
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
 
 <div class="row g-4">
     <div class="col-lg-7">
@@ -58,8 +95,13 @@
         </form>
     </div>
 
+
+
     <div class="col-lg-5">
         <div class="card">
+
+
+
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Tasklist</span>
                 <div class="d-flex gap-2">
@@ -372,6 +414,27 @@
         rows.forEach(attachTimeListeners);
         validateOverlaps(true);
     })();
+
+
+    document.querySelectorAll('.urgent-add-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // create a fake button element matching your task drawer API
+            const ghost = document.createElement('button');
+            ghost.setAttribute('data-task-id', btn.getAttribute('data-task-id'));
+            ghost.setAttribute('data-duration', btn.getAttribute('data-duration') || '60');
+            // give it a title for the label (optional)
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'fw-semibold';
+            titleDiv.innerText = btn.closest('li').querySelector('.fw-semibold').innerText;
+            ghost.appendChild(titleDiv);
+
+            // call your existing adder (chains from last end time, etc.)
+            addTaskRow(ghost);
+
+            // optional: scroll timeline into view
+            document.getElementById('timelineBody')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
 
 
 </script>
