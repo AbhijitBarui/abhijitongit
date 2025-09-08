@@ -30,4 +30,11 @@ urlpatterns = [
     path("item/<int:item_id>/delay/", views.delay_after, name="delay-after"),
 
 
+
+    # Checklist operations (AJAX-friendly)
+    path("task/<int:task_id>/check/add/",    views.check_add,    name="check-add"),
+    path("task/<int:task_id>/check/toggle/<int:item_id>/", views.check_toggle, name="check-toggle"),
+    path("task/<int:task_id>/check/delete/<int:item_id>/", views.check_delete, name="check-delete"),
+
+
 ]

@@ -123,6 +123,32 @@
     .btn-icon:active {
         background: #eef1f6;
     }
+
+    .white-space-prewrap {
+        white-space: pre-wrap;
+    }
+
+    .task-toggle {
+        background: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        color: inherit;
+        /* keep original text color */
+        font: inherit;
+        /* keep font same as parent */
+        text-decoration: none;
+        /* remove underline */
+        cursor: pointer;
+    }
+
+    .task-toggle:hover,
+    .task-toggle:focus {
+        text-decoration: none;
+        /* prevent underline on hover/focus */
+        color: inherit;
+        /* stay black even when hovered */
+    }
 </style>
 
 
@@ -145,9 +171,43 @@
         data-start="{{ it.start_hhmm }}" data-end="{{ it.end_hhmm }}"
         data-done="{% if it.done %}1{% else %}0{% endif %}">
         <div class="agenda-main flex-grow-1 {% if it.done %}text-decoration-line-through text-muted{% endif %}">
-            <span class="fw-semibold">{{ it.start_hhmm }}–{{ it.end_hhmm }}</span>
-            &nbsp; <span class="text-muted">[{{ it.group_name|default:it.task.group.name }}]</span>
-            {{ it.task.title }}
+
+            <button type="button" class="task-toggle w-100 text-start" data-bs-toggle="collapse"
+                data-bs-target="#desc-{{ it.id }}" aria-expanded="false">
+                <span class="fw-semibold">{{ it.start_hhmm }}–{{ it.end_hhmm }}</span>
+                &nbsp; <span class="text-muted">[{{ it.group_name|default:it.task.group.name }}]</span>
+                {{ it.task.title }}
+            </button>
+
+            <!-- Collapsible description area -->
+            <div id="desc-{{ it.id }}" class="collapse mt-2">
+                {% if it.task.description_type == "text" and it.task.description_text %}
+                <div class="small text-muted white-space-prewrap">{{ it.task.description_text }}</div>
+
+                {% elif it.task.description_type == "check" %}
+                <ul class="list-unstyled mb-2" id="cl-{{ it.task.id }}">
+                    {% for ci in it.task.check_items.all %}
+                    <li class="d-flex align-items-center gap-2 py-1" data-item-id="{{ ci.id }}">
+                        <input type="checkbox" class="form-check-input cl-toggle" {% if ci.done %}checked{% endif %}>
+                        <span class="flex-grow-1 {% if ci.done %}text-decoration-line-through text-muted{% endif %}">
+                            {{ ci.text }}
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger cl-del" title="Delete">✕</button>
+                    </li>
+                    {% empty %}
+                    <li class="text-muted small">No checklist items yet.</li>
+                    {% endfor %}
+                </ul>
+                <form class="d-flex gap-2 cl-add-form" data-task-id="{{ it.task.id }}">
+                    {% csrf_token %}
+                    <input class="form-control form-control-sm" name="text" placeholder="Add item…">
+                    <button class="btn btn-sm btn-outline-primary">Add</button>
+                </form>
+
+                {% else %}
+                <div class="small text-muted">No description.</div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="agenda-actions d-flex align-items-center gap-2">
@@ -410,6 +470,74 @@
         }
 
         render();
+    })();
+</script>
+
+
+
+<script>
+    (function () {
+        // Add item
+        document.querySelectorAll('.cl-add-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const taskId = form.getAttribute('data-task-id');
+                const input = form.querySelector('input[name="text"]');
+                const text = (input.value || "").trim();
+                if (!text) return;
+                const resp = await fetch(`/agenda/task/${taskId}/check/add/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value },
+                    body: new URLSearchParams({ text })
+                });
+                const data = await resp.json();
+                if (!data.ok) return alert(data.error || 'Error');
+                // inject row
+                const ul = document.getElementById(`cl-${taskId}`);
+                const li = document.createElement('li');
+                li.className = 'd-flex align-items-center gap-2 py-1';
+                li.setAttribute('data-item-id', data.id);
+                li.innerHTML = `
+        <input type="checkbox" class="form-check-input cl-toggle">
+        <span class="flex-grow-1">${data.text}</span>
+        <button class="btn btn-sm btn-outline-danger cl-del" title="Delete">✕</button>`;
+                ul.appendChild(li);
+                input.value = "";
+            });
+        });
+
+        // Toggle + Delete via event delegation
+        document.querySelectorAll('ul[id^="cl-"]').forEach(ul => {
+            ul.addEventListener('click', async (e) => {
+                const li = e.target.closest('li[data-item-id]');
+                if (!li) return;
+                const taskId = ul.id.split('-')[1];
+                const itemId = li.getAttribute('data-item-id');
+
+                // Toggle
+                if (e.target.classList.contains('cl-toggle')) {
+                    const form = ul.parentElement.querySelector('.cl-add-form');
+                    const resp = await fetch(`/agenda/task/${taskId}/check/toggle/${itemId}/`, {
+                        method: 'POST', headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value }
+                    });
+                    const data = await resp.json();
+                    if (!data.ok) { e.target.checked = !e.target.checked; return; }
+                    const span = li.querySelector('span.flex-grow-1');
+                    span.classList.toggle('text-decoration-line-through', data.done);
+                    span.classList.toggle('text-muted', data.done);
+                }
+
+                // Delete
+                if (e.target.classList.contains('cl-del')) {
+                    const form = ul.parentElement.querySelector('.cl-add-form');
+                    const resp = await fetch(`/agenda/task/${taskId}/check/delete/${itemId}/`, {
+                        method: 'POST', headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value }
+                    });
+                    const data = await resp.json();
+                    if (data.ok) li.remove();
+                }
+            });
+        });
     })();
 </script>
 

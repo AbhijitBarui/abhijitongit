@@ -260,18 +260,6 @@ def tasks_list(request):
     return render(request, "planner/tasks_list.html", {"tasks": qs})
 
 
-# @require_http_methods(["GET","POST"])
-# def task_edit(request, pk):
-#     Form = modelform_factory(Task, fields=["title","group","duration_min","priority","desired_time","deadline","active"])
-#     obj = get_object_or_404(Task, pk=pk)
-#     if request.method == "POST":
-#         form = Form(request.POST, instance=obj)
-#         if form.is_valid():
-#             form.save(); messages.success(request,"Saved"); return redirect("planner:tasks-list")
-#     else:
-#         form = Form(instance=obj)
-#     return render(request, "planner/simple_form.html", {"form": form, "title": f"Edit Task: {obj.title}"})
-
 @require_http_methods(["GET","POST"])
 def task_edit(request, pk):
     obj = get_object_or_404(Task, pk=pk)
@@ -424,3 +412,40 @@ def delay_after(request, item_id):
 
     messages.success(request, f"Extended “{it.task.title}” by {delay_min} min and delayed later tasks.")
     return redirect("planner:agenda-today")
+
+
+
+
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_POST
+from .models import Task, TaskChecklistItem
+
+def _json_error(msg, code=400): return JsonResponse({"ok": False, "error": msg}, status=code)
+
+@require_POST
+def check_add(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.description_type != "check":
+        return _json_error("Task is not a checklist")
+    text = (request.POST.get("text") or "").strip()
+    if not text:
+        return _json_error("Empty item")
+    last = task.check_items.order_by("-order").first()
+    order = (last.order + 1) if last else 0
+    item = TaskChecklistItem.objects.create(task=task, text=text, order=order)
+    return JsonResponse({"ok": True, "id": item.id, "text": item.text, "done": item.done})
+
+@require_POST
+def check_toggle(request, task_id, item_id):
+    task = get_object_or_404(Task, id=task_id)
+    item = get_object_or_404(TaskChecklistItem, id=item_id, task=task)
+    item.done = not item.done
+    item.save(update_fields=["done"])
+    return JsonResponse({"ok": True, "id": item.id, "done": item.done})
+
+@require_POST
+def check_delete(request, task_id, item_id):
+    task = get_object_or_404(Task, id=task_id)
+    item = get_object_or_404(TaskChecklistItem, id=item_id, task=task)
+    item.delete()
+    return JsonResponse({"ok": True, "id": item_id})

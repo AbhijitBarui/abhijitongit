@@ -42,9 +42,27 @@ class Task(models.Model):
     end_date   = models.DateField(null=True, blank=True)
     skip_dates = models.JSONField(default=list, blank=True)             # ["2025-09-10", ...]
     rrule_text = models.CharField(max_length=160, blank=True)           # for "custom" if you want later
+    DESC_TYPES = [
+        ("none", "None"),
+        ("text", "Plain text"),
+        ("check", "Checklist"),
+    ]
+    description_type = models.CharField(max_length=8, choices=DESC_TYPES, default="none")
+    description_text = models.TextField(blank=True, default="")  # used when description_type="text"
+
 
     def __str__(self):
         return self.title
+
+
+class TaskChecklistItem(models.Model):
+    task = models.ForeignKey(Task, related_name="check_items", on_delete=models.CASCADE)
+    text = models.CharField(max_length=200)
+    done = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
 
 class DayPlan(models.Model):
     date = models.DateField(default=timezone.localdate, unique=True)
