@@ -298,17 +298,33 @@ def tasks_list(request):
     return render(request, "planner/tasks_list.html", {"tasks": qs})
 
 
+# @require_http_methods(["GET","POST"])
+# def task_edit(request, pk):
+#     Form = modelform_factory(Task, fields=["title","group","duration_min","priority","desired_time","deadline","active"])
+#     obj = get_object_or_404(Task, pk=pk)
+#     if request.method == "POST":
+#         form = Form(request.POST, instance=obj)
+#         if form.is_valid():
+#             form.save(); messages.success(request,"Saved"); return redirect("planner:tasks-list")
+#     else:
+#         form = Form(instance=obj)
+#     return render(request, "planner/simple_form.html", {"form": form, "title": f"Edit Task: {obj.title}"})
+
 @require_http_methods(["GET","POST"])
 def task_edit(request, pk):
-    Form = modelform_factory(Task, fields=["title","group","duration_min","priority","desired_time","deadline","active"])
     obj = get_object_or_404(Task, pk=pk)
     if request.method == "POST":
-        form = Form(request.POST, instance=obj)
+        form = TaskForm(request.POST, instance=obj)   # <-- use TaskForm
         if form.is_valid():
-            form.save(); messages.success(request,"Saved"); return redirect("planner:tasks-list")
+            form.save()
+            messages.success(request, "Saved")
+            return redirect("planner:tasks-list")
     else:
-        form = Form(instance=obj)
-    return render(request, "planner/simple_form.html", {"form": form, "title": f"Edit Task: {obj.title}"})
+        form = TaskForm(instance=obj)                 # <-- use TaskForm
+    return render(request, "planner/simple_form.html", {
+        "form": form,
+        "title": f"Edit Task: {obj.title}"
+    })
 
 @require_http_methods(["POST"])
 def task_delete(request, pk):
