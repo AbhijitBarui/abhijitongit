@@ -496,3 +496,47 @@ def drawing_delete(request, pk):
     dr = get_object_or_404(TaskDrawing, id=pk)
     dr.delete()
     return JsonResponse({"ok": True, "id": pk})
+
+
+
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseBadRequest
+from .models import Task, TaskAttachment
+
+MAX_UPLOAD_MB = 20  # tweak if you want
+
+def _json_error(msg, code=400): return JsonResponse({"ok": False, "error": msg}, status=code)
+
+@require_POST
+def attach_upload(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    files = request.FILES.getlist("files")
+    if not files:
+        return _json_error("No files")
+
+    created = []
+    for f in files:
+        if f.size > MAX_UPLOAD_MB * 1024 * 1024:
+            return _json_error(f"{f.name}: too large (>{MAX_UPLOAD_MB}MB)")
+        att = TaskAttachment(
+            task=task,
+            file=f,
+            original_name=getattr(f, "name", ""),
+            content_type=getattr(f, "content_type", "") or ""
+        )
+        att.save()
+        created.append({
+            "id": att.id,
+            "url": att.file.url,
+            "name": att.original_name or att.file.name,
+            "ct": att.content_type,
+            "is_image": att.is_image, "is_audio": att.is_audio, "is_video": att.is_video
+        })
+    return JsonResponse({"ok": True, "items": created})
+
+@require_POST
+def attach_delete(request, pk):
+    att = get_object_or_404(TaskAttachment, id=pk)
+    att.delete()
+    return JsonResponse({"ok": True, "id": pk})

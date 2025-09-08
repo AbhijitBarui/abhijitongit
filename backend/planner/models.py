@@ -43,12 +43,13 @@ class Task(models.Model):
     skip_dates = models.JSONField(default=list, blank=True)             # ["2025-09-10", ...]
     rrule_text = models.CharField(max_length=160, blank=True)           # for "custom" if you want later
     DESC_TYPES = [
-        ("none", "None"),
-        ("text", "Plain text"),
-        ("check", "Checklist"),
-        ("scribble", "Scribbles"),
+        ("none","None"),
+        ("text","Plain text"),
+        ("check","Checklist"),
+        ("scribble","Scribbles"),
+        ("attachments","Attachments"),  # ✅ NEW
     ]
-    description_type = models.CharField(max_length=8, choices=DESC_TYPES, default="none")
+    description_type = models.CharField(max_length=15, choices=DESC_TYPES, default="none")
     description_text = models.TextField(blank=True, default="")  # used when description_type="text"
 
 
@@ -101,3 +102,51 @@ class PlanItem(models.Model):
 
     class Meta:
         ordering = ["start_hhmm", "order"]
+
+
+
+import mimetypes
+from django.core.validators import FileExtensionValidator
+
+def _guess_ct(path):
+    return mimetypes.guess_type(path)[0] or "application/octet-stream"
+
+class TaskAttachment(models.Model):
+    task = models.ForeignKey(Task, related_name="attachments", on_delete=models.CASCADE)
+    file = models.FileField(
+        upload_to="task_attachments/%Y/%m/%d",
+        validators=[FileExtensionValidator([
+            # images
+            "jpg","jpeg","png","webp","gif","heic","heif",
+            # audio
+            "m4a","mp3","wav","aac","ogg",
+            # video
+            "mp4","mov","webm"
+        ])]
+    )
+    original_name = models.CharField(max_length=255, blank=True, default="")
+    content_type = models.CharField(max_length=80, blank=True, default="")
+    size = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+
+    # convenience flags for template
+    @property
+    def is_image(self):
+        return (self.content_type or _guess_ct(self.file.name)).startswith("image/")
+    @property
+    def is_audio(self):
+        return (self.content_type or _guess_ct(self.file.name)).startswith("audio/")
+    @property
+    def is_video(self):
+        return (self.content_type or _guess_ct(self.file.name)).startswith("video/")
+
+    def save(self, *args, **kwargs):
+        if self.file and not self.content_type:
+            self.content_type = _guess_ct(self.file.name)
+        if self.file and not self.size:
+            try: self.size = self.file.size
+            except Exception: pass
+        super().save(*args, **kwargs)

@@ -239,6 +239,52 @@
                     {% endfor %}
                 </div>
 
+                {% elif it.task.description_type == "attachments"%}
+                <hr class="my-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-semibold">Attachments</div>
+
+                    <!-- Hidden file input the button will click -->
+                    <input type="file" id="attach-input-{{ it.task.id }}" accept="image/*,audio/*,video/*"
+                        capture="environment" multiple class="d-none">
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary attach-btn"
+                            data-task-id="{{ it.task.id }}" data-input-id="attach-input-{{ it.task.id }}"
+                            title="Add from camera or files">Add media</button>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap" id="attach-thumbs-{{ it.task.id }}">
+                    {% for a in it.task.attachments.all %}
+                    <div class="position-relative" data-attach-id="{{ a.id }}">
+                        {% if a.is_image %}
+                        <a href="{{ a.file.url }}" target="_blank" title="{{ a.original_name }}">
+                            <img src="{{ a.file.url }}" alt=""
+                                style="width:120px;height:auto;border-radius:6px;border:1px solid #e5e7eb;">
+                        </a>
+                        {% elif a.is_audio %}
+                        <audio controls style="width:200px">
+                            <source src="{{ a.file.url }}" type="{{ a.content_type }}">
+                        </audio>
+                        {% elif a.is_video %}
+                        <video controls style="width:200px;border-radius:6px;border:1px solid #e5e7eb;">
+                            <source src="{{ a.file.url }}" type="{{ a.content_type }}">
+                        </video>
+                        {% else %}
+                        <a href="{{ a.file.url }}" target="_blank">{{ a.original_name|default:"Download" }}</a>
+                        {% endif %}
+                        <button class="btn btn-sm btn-light position-absolute top-0 end-0 attach-del"
+                            data-attach-id="{{ a.id }}" title="Delete">✕</button>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted small">No attachments yet.</div>
+                    {% endfor %}
+                </div>
+
+
+
+
                 {% else %}
                 <div class="small text-muted">No description.</div>
                 {% endif %}
@@ -777,6 +823,76 @@
                 });
                 const data = await r.json();
                 if (data.ok) e.target.closest('[data-drawing-id]').remove();
+            });
+        });
+    })();
+</script>
+
+
+
+
+<script>
+    (function () {
+        // open file picker
+        document.querySelectorAll('.attach-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const inputId = btn.getAttribute('data-input-id');
+                const input = document.getElementById(inputId);
+                if (!input) return;
+                input.click();
+
+                input.onchange = async () => {
+                    const taskId = btn.getAttribute('data-task-id');
+                    const files = Array.from(input.files || []);
+                    if (!files.length) return;
+
+                    const fd = new FormData();
+                    files.forEach(f => fd.append('files', f));
+                    const csrf = document.querySelector('input[name=csrfmiddlewaretoken]')?.value;
+
+                    const resp = await fetch(`/agenda/task/${taskId}/attach/upload/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrf },
+                        body: fd
+                    });
+                    const data = await resp.json();
+                    if (!data.ok) { alert(data.error || 'Upload failed'); return; }
+
+                    const wrap = document.getElementById(`attach-thumbs-${taskId}`);
+                    // clear "No attachments yet" if present
+                    if (wrap && wrap.firstElementChild && wrap.firstElementChild.classList.contains('text-muted')) {
+                        wrap.innerHTML = '';
+                    }
+                    data.items.forEach(it => {
+                        const div = document.createElement('div');
+                        div.className = 'position-relative';
+                        div.setAttribute('data-attach-id', it.id);
+                        let inner = '';
+                        if (it.is_image) inner = `<a href="${it.url}" target="_blank"><img src="${it.url}" style="width:120px;height:auto;border-radius:6px;border:1px solid #e5e7eb;"></a>`;
+                        else if (it.is_audio) inner = `<audio controls style="width:200px"><source src="${it.url}" type="${it.ct}"></audio>`;
+                        else if (it.is_video) inner = `<video controls style="width:200px;border-radius:6px;border:1px solid #e5e7eb;"><source src="${it.url}" type="${it.ct}"></video>`;
+                        else inner = `<a href="${it.url}" target="_blank">${it.name || 'Download'}</a>`;
+                        div.innerHTML = inner + `<button class="btn btn-sm btn-light position-absolute top-0 end-0 attach-del" data-attach-id="${it.id}">✕</button>`;
+                        wrap?.prepend(div);
+                    });
+
+                    input.value = ""; // reset so same file can be selected again
+                };
+            });
+        });
+
+        // delete handler
+        document.querySelectorAll('[id^="attach-thumbs-"]').forEach(wrap => {
+            wrap.addEventListener('click', async (e) => {
+                if (!e.target.classList.contains('attach-del')) return;
+                const id = e.target.getAttribute('data-attach-id');
+                const csrf = document.querySelector('input[name=csrfmiddlewaretoken]')?.value;
+                if (!confirm('Delete this attachment?')) return;
+                const r = await fetch(`/agenda/attach/${id}/delete/`, {
+                    method: 'POST', headers: { 'X-CSRFToken': csrf }
+                });
+                const data = await r.json();
+                if (data.ok) e.target.closest('[data-attach-id]').remove();
             });
         });
     })();

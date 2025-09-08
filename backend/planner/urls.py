@@ -39,4 +39,8 @@ urlpatterns = [
     path("task/<int:task_id>/drawing/save/", views.drawing_save, name="drawing-save"),
     path("drawing/<int:pk>/delete/",        views.drawing_delete, name="drawing-delete"),
 
+    # Attachments
+    path("task/<int:task_id>/attach/upload/",  views.attach_upload, name="attach-upload"),
+    path("attach/<int:pk>/delete/",            views.attach_delete, name="attach-delete"),
+
 ]
