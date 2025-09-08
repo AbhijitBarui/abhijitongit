@@ -10,9 +10,13 @@ from .forms import TaskForm, TaskGroupForm
 from django.contrib import messages
 from datetime import timedelta
 from django.db.models import Count, Q
+# views.py (or utils where _today lives)
+from django.utils import timezone
 
 def _today():
+    # returns the date in the current active time zone (settings.TIME_ZONE or user tz)
     return timezone.localdate()
+
 
 @require_http_methods(["GET"])
 def agenda_today(request):
