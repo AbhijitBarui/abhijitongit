@@ -46,6 +46,7 @@ class Task(models.Model):
         ("none", "None"),
         ("text", "Plain text"),
         ("check", "Checklist"),
+        ("scribble", "Scribbles"),
     ]
     description_type = models.CharField(max_length=8, choices=DESC_TYPES, default="none")
     description_text = models.TextField(blank=True, default="")  # used when description_type="text"
@@ -63,6 +64,24 @@ class TaskChecklistItem(models.Model):
 
     class Meta:
         ordering = ["order", "id"]
+
+from django.core.validators import FileExtensionValidator
+
+class TaskDrawing(models.Model):
+    task = models.ForeignKey(Task, related_name="drawings", on_delete=models.CASCADE)
+    image = models.ImageField(
+        upload_to="task_drawings/%Y/%m/%d",
+        validators=[FileExtensionValidator(["png"])],
+    )
+    title = models.CharField(max_length=120, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+
+    def __str__(self):
+        return f"Drawing({self.id}) for {self.task_id}"
+
 
 class DayPlan(models.Model):
     date = models.DateField(default=timezone.localdate, unique=True)

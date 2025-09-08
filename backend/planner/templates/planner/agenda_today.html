@@ -151,6 +151,14 @@
     }
 </style>
 
+<style>
+    .draw-canvas {
+        touch-action: none;
+    }
+
+    /* better touch drawing */
+</style>
+
 
 
 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -204,6 +212,33 @@
                     <button class="btn btn-sm btn-outline-primary">Add</button>
                 </form>
 
+                {% elif it.task.description_type == "scribble" %}
+                <hr class="my-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-semibold">Scribbles</div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
+                        data-bs-target="#drawModal" data-task-id="{{ it.task.id }}"
+                        data-task-title="{{ it.task.title }}">
+                        New drawing
+                    </button>
+                </div>
+
+                <!-- Thumbnails -->
+                <div class="d-flex gap-2 flex-wrap" id="draw-thumbs-{{ it.task.id }}">
+                    {% for dr in it.task.drawings.all %}
+                    <div class="position-relative" data-drawing-id="{{ dr.id }}">
+                        <a href="{{ dr.image.url }}" target="_blank" title="{{ dr.title|default:'Drawing' }}">
+                            <img src="{{ dr.image.url }}" alt=""
+                                style="width:120px;height:auto;border-radius:6px;border:1px solid #e5e7eb;">
+                        </a>
+                        <button class="btn btn-sm btn-light position-absolute top-0 end-0 draw-del"
+                            data-drawing-id="{{ dr.id }}" title="Delete">✕</button>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted small">No drawings yet.</div>
+                    {% endfor %}
+                </div>
+
                 {% else %}
                 <div class="small text-muted">No description.</div>
                 {% endif %}
@@ -226,6 +261,44 @@
 
     {% endfor %}
 </ul>
+
+<!-- Drawing modal -->
+<div class="modal fade" id="drawModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    New drawing — <span id="drawTaskTitle">Task</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <label class="form-label mb-0">Color</label>
+                    <input type="color" id="penColor" value="#1f2937">
+                    <label class="form-label mb-0 ms-3">Size</label>
+                    <input type="range" id="penSize" min="1" max="28" value="5" style="width:140px">
+                    <button class="btn btn-sm btn-outline-secondary" id="eraserBtn" type="button">Eraser</button>
+                    <button class="btn btn-sm btn-outline-secondary" id="undoBtn" type="button">Undo</button>
+                    <button class="btn btn-sm btn-outline-danger ms-auto" id="clearBtn" type="button">Clear</button>
+                </div>
+                <div class="border rounded" style="overflow:hidden">
+                    <canvas id="drawCanvas" class="draw-canvas"
+                        style="width:100%;height:360px;background:#fff;"></canvas>
+                </div>
+                <div class="mt-2">
+                    <input type="text" class="form-control form-control-sm" id="drawTitle"
+                        placeholder="Optional title…">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="saveDrawingBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Delay Modal -->
 <div class="modal fade" id="delayModal" tabindex="-1" aria-hidden="true">
@@ -536,6 +609,174 @@
                     const data = await resp.json();
                     if (data.ok) li.remove();
                 }
+            });
+        });
+    })();
+</script>
+
+
+<script>
+    (function () {
+        // --------- modal wiring ----------
+        let activeTaskId = null;
+        const modal = document.getElementById('drawModal');
+        const titleSpan = document.getElementById('drawTaskTitle');
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const penColor = document.getElementById('penColor');
+        const penSize = document.getElementById('penSize');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const saveBtn = document.getElementById('saveDrawingBtn');
+        const titleInp = document.getElementById('drawTitle');
+
+        // high-DPI sizing
+        function sizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            const ratio = window.devicePixelRatio || 1;
+            canvas.width = Math.round(rect.width * ratio);
+            canvas.height = Math.round(rect.height * ratio);
+            ctx.scale(ratio, ratio);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, rect.width, rect.height);
+        }
+        sizeCanvas();
+        window.addEventListener('resize', sizeCanvas);
+
+        // strokes stack for undo
+        let drawing = false;
+        let last = null;
+        let strokes = []; // each stroke = {points:[{x,y}], color, size, erase}
+
+        function startDraw(x, y) {
+            drawing = true;
+            last = { x, y };
+            strokes.push({ points: [{ x, y }], color: penColor.value, size: parseInt(penSize.value, 10), erase: eraserBtn.classList.contains('active') });
+        }
+        function drawTo(x, y) {
+            if (!drawing) return;
+            const s = strokes[strokes.length - 1];
+            s.points.push({ x, y });
+            ctx.lineJoin = ctx.lineCap = 'round';
+            ctx.lineWidth = s.size;
+            if (s.erase) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = s.color;
+            }
+            ctx.beginPath();
+            ctx.moveTo(last.x, last.y);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            last = { x, y };
+        }
+        function endDraw() { drawing = false; last = null; }
+
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            if (e.touches && e.touches[0]) {
+                return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+            }
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+
+        canvas.addEventListener('mousedown', e => startDraw(...Object.values(getPos(e))));
+        canvas.addEventListener('mousemove', e => drawTo(...Object.values(getPos(e))));
+        window.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(...Object.values(getPos(e))); });
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); drawTo(...Object.values(getPos(e))); });
+        canvas.addEventListener('touchend', e => { e.preventDefault(); endDraw(); });
+
+        eraserBtn.addEventListener('click', () => eraserBtn.classList.toggle('active'));
+        clearBtn.addEventListener('click', () => {
+            const rect = canvas.getBoundingClientRect();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, rect.width, rect.height);
+            strokes = [];
+        });
+        undoBtn.addEventListener('click', () => {
+            if (!strokes.length) return;
+            strokes.pop();
+            // redraw all
+            const rect = canvas.getBoundingClientRect();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, rect.width, rect.height);
+            for (const s of strokes) {
+                ctx.lineJoin = ctx.lineCap = 'round';
+                ctx.lineWidth = s.size;
+                ctx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
+                ctx.strokeStyle = s.erase ? 'rgba(0,0,0,1)' : s.color;
+                for (let i = 1; i < s.points.length; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(s.points[i - 1].x, s.points[i - 1].y);
+                    ctx.lineTo(s.points[i].x, s.points[i].y);
+                    ctx.stroke();
+                }
+            }
+        });
+
+        // when opened, set task id/title and reset canvas
+        modal.addEventListener('show.bs.modal', (ev) => {
+            const btn = ev.relatedTarget;
+            activeTaskId = btn.getAttribute('data-task-id');
+            titleSpan.textContent = btn.getAttribute('data-task-title') || 'Task';
+            titleInp.value = '';
+            sizeCanvas();
+            strokes = [];
+        });
+
+        // save -> POST base64 png to server, then inject thumbnail
+        saveBtn.addEventListener('click', async () => {
+            if (!activeTaskId) return;
+            const dataURL = canvas.toDataURL("image/png");
+            const csrf = document.querySelector('input[name=csrfmiddlewaretoken]')?.value; // any token on page
+            const resp = await fetch(`/agenda/task/${activeTaskId}/drawing/save/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf },
+                body: new URLSearchParams({ png: dataURL, title: titleInp.value || "" })
+            });
+            const data = await resp.json();
+            if (!data.ok) { alert(data.error || 'Save failed'); return; }
+
+            // add thumb
+            const wrap = document.getElementById(`draw-thumbs-${activeTaskId}`);
+            const block = document.createElement('div');
+            block.className = 'position-relative';
+            block.setAttribute('data-drawing-id', data.id);
+            block.innerHTML = `
+      <a href="${data.url}" target="_blank" title="${data.title || 'Drawing'}">
+        <img src="${data.url}" style="width:120px;height:auto;border-radius:6px;border:1px solid #e5e7eb;">
+      </a>
+      <button class="btn btn-sm btn-light position-absolute top-0 end-0 draw-del" data-drawing-id="${data.id}">✕</button>
+    `;
+            // remove "No drawings yet" hint if present
+            if (wrap && wrap.firstElementChild && wrap.firstElementChild.classList.contains('text-muted')) {
+                wrap.innerHTML = '';
+            }
+            wrap?.prepend(block);
+
+            // close modal
+            bootstrap.Modal.getInstance(modal)?.hide();
+        });
+
+        // delete handler (event delegation across all thumb containers)
+        document.querySelectorAll('[id^="draw-thumbs-"]').forEach(g => {
+            g.addEventListener('click', async (e) => {
+                if (!e.target.classList.contains('draw-del')) return;
+                const drawingId = e.target.getAttribute('data-drawing-id');
+                const csrf = document.querySelector('input[name=csrfmiddlewaretoken]')?.value;
+                const ok = confirm('Delete this drawing?');
+                if (!ok) return;
+                const r = await fetch(`/agenda/drawing/${drawingId}/delete/`, {
+                    method: 'POST', headers: { 'X-CSRFToken': csrf }
+                });
+                const data = await r.json();
+                if (data.ok) e.target.closest('[data-drawing-id]').remove();
             });
         });
     })();

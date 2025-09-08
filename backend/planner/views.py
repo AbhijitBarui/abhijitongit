@@ -449,3 +449,50 @@ def check_delete(request, task_id, item_id):
     item = get_object_or_404(TaskChecklistItem, id=item_id, task=task)
     item.delete()
     return JsonResponse({"ok": True, "id": item_id})
+
+
+import base64
+from django.core.files.base import ContentFile
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseBadRequest
+from .models import Task, TaskDrawing
+
+def _json_error(msg, code=400): 
+    return JsonResponse({"ok": False, "error": msg}, status=code)
+
+@require_POST
+def drawing_save(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    data_url = request.POST.get("png", "")
+    title = (request.POST.get("title") or "").strip()
+
+    if not data_url.startswith("data:image/png;base64,"):
+        return _json_error("Bad PNG data")
+
+    try:
+        b64 = data_url.split(",", 1)[1]
+        raw = base64.b64decode(b64)
+    except Exception:
+        return _json_error("Decode error")
+
+    # optional guard: ~2MB limit
+    if len(raw) > 2 * 1024 * 1024:
+        return _json_error("PNG too large (max 2MB)")
+
+    fname = f"task-{task.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
+    drawing = TaskDrawing(task=task, title=title)
+    drawing.image.save(fname, ContentFile(raw), save=True)
+
+    return JsonResponse({
+        "ok": True,
+        "id": drawing.id,
+        "url": drawing.image.url,
+        "title": drawing.title,
+        "created": drawing.created_at.isoformat(),
+    })
+
+@require_POST
+def drawing_delete(request, pk):
+    dr = get_object_or_404(TaskDrawing, id=pk)
+    dr.delete()
+    return JsonResponse({"ok": True, "id": pk})
