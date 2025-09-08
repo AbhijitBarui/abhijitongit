@@ -18,112 +18,6 @@ def agenda_today(request):
     items = plan.items.select_related("task").all() if plan else []
     return render(request, "planner/agenda_today.html", {"date": d, "plan": plan, "items": items})
 
-# @require_http_methods(["GET", "POST"])
-# @transaction.atomic
-# def agenda_edit(request):
-#     d = _today()
-#     plan, _ = DayPlan.objects.get_or_create(date=d)
-
-#     if request.method == "POST":
-#         # Expect a single hidden field 'items_json' with a list of rows
-#         # [{"task_id": 3, "start": "09:00", "end": "10:00"}, ...]
-#         try:
-#             rows = json.loads(request.POST.get("items_json", "[]"))
-#         except Exception:
-#             return HttpResponseBadRequest("Bad items payload")
-
-#         plan.items.all().delete()
-#         bulk = []
-#         for idx, r in enumerate(rows):
-#             t = Task.objects.get(id=int(r["task_id"]))
-#             bulk.append(PlanItem(
-#                 plan=plan,
-#                 task=t,
-#                 group_name=t.group.name,
-#                 start_hhmm=r["start"],
-#                 end_hhmm=r["end"],
-#                 order=idx
-#             ))
-#         PlanItem.objects.bulk_create(bulk)
-#         return redirect("planner:agenda-today")
-
-#     # GET: show existing items + task list for the drawer
-#     tasks = Task.objects.filter(active=True).select_related("group").order_by("-priority", "duration_min")
-#     items = plan.items.select_related("task").all()
-#     groups = TaskGroup.objects.all().order_by("name")
-#     return render(request, "planner/agenda_edit.html", {
-#         "date": d, "items": items, "tasks": tasks, "groups": groups
-#     })
-
-# @require_http_methods(["GET", "POST"])
-# @transaction.atomic
-# def agenda_edit(request):
-#     d = _today()
-#     plan, _ = DayPlan.objects.get_or_create(date=d)
-
-#     if request.method == "POST":
-#         try:
-#             rows = json.loads(request.POST.get("items_json", "[]"))
-#         except Exception:
-#             return HttpResponseBadRequest("Bad items payload")
-
-#         # index existing items for fast lookup
-#         existing = {str(it.id): it for it in plan.items.all()}
-#         keep_ids = set()
-#         creates = []
-
-#         order_counter = 0
-#         for r in rows:
-#             item_id = r.get("item_id")
-#             task_id = int(r["task_id"])
-#             start = r["start"]
-#             end = r["end"]
-
-#             if item_id and item_id in existing:
-#                 it = existing[item_id]
-#                 # update only mutable fields, preserve 'done'
-#                 changed = False
-#                 if it.task_id != task_id:
-#                     it.task_id = task_id; changed = True
-#                     it.group_name = it.task.group.name  # refresh denormalized name
-#                 if it.start_hhmm != start:
-#                     it.start_hhmm = start; changed = True
-#                 if it.end_hhmm != end:
-#                     it.end_hhmm = end; changed = True
-#                 if it.order != order_counter:
-#                     it.order = order_counter; changed = True
-#                 if changed:
-#                     it.save(update_fields=["task_id","group_name","start_hhmm","end_hhmm","order"])
-#                 keep_ids.add(it.id)
-#             else:
-#                 # new row → create with done=False
-#                 creates.append(PlanItem(
-#                     plan=plan,
-#                     task_id=task_id,
-#                     group_name=Task.objects.get(id=task_id).group.name,
-#                     start_hhmm=start,
-#                     end_hhmm=end,
-#                     order=order_counter,
-#                     done=False,
-#                 ))
-#             order_counter += 1
-
-#         if creates:
-#             PlanItem.objects.bulk_create(creates)
-
-#         # delete items that are not in the submitted list (removed by user)
-#         plan.items.exclude(id__in=keep_ids).delete()
-
-#         return redirect("planner:agenda-today")
-
-#     # GET unchanged...
-#     tasks = Task.objects.filter(active=True).select_related("group").order_by("-priority", "duration_min")
-#     items = plan.items.select_related("task").all()
-#     groups = TaskGroup.objects.all().order_by("name")
-#     return render(request, "planner/agenda_edit.html", {
-#         "date": d, "items": items, "tasks": tasks, "groups": groups
-#     })
-
 
 
 @require_http_methods(["GET", "POST"])
@@ -149,10 +43,10 @@ def agenda_edit(request):
 
         print("[agenda_edit] parsed rows:", len(rows))
 
-        # SAFETY: if nothing came through, do nothing (avoid accidental clears)
-        if len(rows) == 0:
-            print("[agenda_edit] 0 rows received -> no changes applied")
-            return redirect("planner:agenda-today")
+        # # SAFETY: if nothing came through, do nothing (avoid accidental clears)
+        # if len(rows) == 0:
+        #     print("[agenda_edit] 0 rows received -> no changes applied")
+        #     return redirect("planner:agenda-today")
 
         existing_qs = plan.items.select_related("task").all()
         existing = {str(it.id): it for it in existing_qs}
@@ -161,6 +55,8 @@ def agenda_edit(request):
         keep_ids = set()
         creates = []
         updates = 0
+
+        one_time_to_deactivate = set()
 
         order_counter = 0
         for r in rows:
@@ -173,10 +69,17 @@ def agenda_edit(request):
             if item_id and str(item_id) in existing:
                 it = existing[str(item_id)]
                 changed = False
+                # if it.task_id != task_id:
+                #     it.task_id = task_id
+                #     it.group_name = Task.objects.get(id=task_id).group.name
+                #     changed = True
                 if it.task_id != task_id:
                     it.task_id = task_id
-                    it.group_name = Task.objects.get(id=task_id).group.name
+                    t = Task.objects.select_related("group").get(id=task_id)
+                    it.group_name = t.group.name
                     changed = True
+                    if getattr(t, "recurrence", "none") == "none":
+                        one_time_to_deactivate.add(t.id)
                 if it.start_hhmm != start:
                     it.start_hhmm = start; changed = True
                 if it.end_hhmm != end:
@@ -190,15 +93,19 @@ def agenda_edit(request):
             else:
                 # New row
                 grp_name = Task.objects.select_related("group").get(id=task_id).group.name
+                t = Task.objects.select_related("group").get(id=task_id)
                 creates.append(PlanItem(
                     plan=plan,
-                    task_id=task_id,
-                    group_name=grp_name,
+                    task_id=t.id,
+                    group_name=t.group.name,
                     start_hhmm=start,
                     end_hhmm=end,
                     order=order_counter,
                     done=False,
                 ))
+                if getattr(t, "recurrence", "none") == "none":
+                    one_time_to_deactivate.add(t.id)
+
             order_counter += 1
 
         if creates:
@@ -217,6 +124,9 @@ def agenda_edit(request):
         deleted_count = 0
         if to_delete_ids:
             deleted_count = PlanItem.objects.filter(id__in=to_delete_ids).delete()[0]
+
+        if one_time_to_deactivate:
+            Task.objects.filter(id__in=one_time_to_deactivate).update(active=False)
 
         print("[agenda_edit] deleted (existing only):", deleted_count)
 
