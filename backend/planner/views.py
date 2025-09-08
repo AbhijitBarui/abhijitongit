@@ -341,3 +341,64 @@ def task_purge(request, pk):
     obj.delete()
     messages.success(request, "Task and its scheduled items were permanently deleted.")
     return redirect("planner:tasks-list")
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from .models import PlanItem
+
+@require_http_methods(["POST"])
+def delay_after(request, item_id):
+    """Extend the selected item by N minutes and push all later items forward by N."""
+    try:
+        delay_min = int(request.POST.get("minutes", "0"))
+    except (TypeError, ValueError):
+        delay_min = 0
+
+    if delay_min == 0:
+        messages.info(request, "No delay applied.")
+        return redirect("planner:agenda-today")
+    if delay_min < 0:
+        messages.error(request, "Negative delay is not supported.")
+        return redirect("planner:agenda-today")
+
+    it = get_object_or_404(PlanItem, id=item_id)
+    plan = it.plan
+
+    # --- helpers ---
+    def hhmm_to_min(hhmm: str) -> int:
+        h, m = map(int, hhmm.split(":"))
+        return h * 60 + m
+
+    def min_to_hhmm(total: int) -> str:
+        total = max(0, min(24 * 60, total))
+        return f"{total // 60:02d}:{total % 60:02d}"
+
+    # Keep the original end to decide which items count as "later"
+    original_end_str = it.end_hhmm
+    original_end_min = hhmm_to_min(original_end_str)
+
+    # 1) Extend the current item
+    new_end_min = min(original_end_min + delay_min, 24 * 60)
+    it.end_hhmm = min_to_hhmm(new_end_min)
+    it.save(update_fields=["end_hhmm"])
+
+    # 2) Shift all items whose start >= original end
+    later_items = plan.items.filter(start_hhmm__gte=original_end_str).order_by("start_hhmm", "order")
+    for li in later_items:
+        s = hhmm_to_min(li.start_hhmm) + delay_min
+        e = hhmm_to_min(li.end_hhmm) + delay_min
+        li.start_hhmm = min_to_hhmm(s)
+        li.end_hhmm   = min_to_hhmm(e)
+        li.save(update_fields=["start_hhmm", "end_hhmm"])
+
+    # 3) Recompute 'order' by chronological order (nice to keep consistent)
+    reordered = list(plan.items.order_by("start_hhmm", "end_hhmm", "id"))
+    for idx, li in enumerate(reordered):
+        if li.order != idx:
+            li.order = idx
+            li.save(update_fields=["order"])
+
+    messages.success(request, f"Extended “{it.task.title}” by {delay_min} min and delayed later tasks.")
+    return redirect("planner:agenda-today")

@@ -27,5 +27,7 @@ urlpatterns = [
 
     path("manage/tasks/<int:pk>/purge/", views.task_purge, name="task-purge"),
 
+    path("item/<int:item_id>/delay/", views.delay_after, name="delay-after"),
+
 
 ]

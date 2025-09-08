@@ -24,6 +24,105 @@
         pointer-events: none;
         transition: width 0.25s linear;
     }
+
+    /* Keep the overdue overlay under the content */
+    .agenda-row {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .agenda-row::before {
+        z-index: 0;
+    }
+
+    .agenda-row>* {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Right rail: fixed width so controls don't drift */
+    .agenda-actions {
+        min-width: 96px;
+        /* enough for checkbox + icon */
+        justify-content: flex-end;
+    }
+
+    /* Nicer checkbox */
+    .modern-check {
+        appearance: none;
+        -webkit-appearance: none;
+        position: relative;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #c7ccd1;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+        transition: all .15s ease;
+        display: inline-flex;
+        /* ✅ keeps it aligned in flex containers */
+        align-items: center;
+        /* ✅ vertical centering */
+        justify-content: center;
+        /* ✅ horizontal centering */
+        vertical-align: middle;
+    }
+
+
+
+    .modern-check:hover {
+        border-color: #9aa4ad;
+    }
+
+    .modern-check:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, .15);
+    }
+
+    .modern-check:checked {
+        border-color: #198754;
+        background: #198754;
+    }
+
+    /* Proper checkmark */
+    .modern-check:checked::after {
+        content: "";
+        position: absolute;
+        width: 6px;
+        height: 12px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        top: 2px;
+        /* ✅ moved up a bit */
+        left: 6px;
+        /* ✅ nudged right */
+    }
+
+
+    /* Compact square icon button */
+    .btn-icon {
+        --size: 34px;
+        width: var(--size);
+        height: var(--size);
+        padding: 0;
+        line-height: 1;
+        border-radius: 8px;
+        border: 1px solid #dcdfe3;
+        background: #fff;
+        color: #6b7280;
+        transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .btn-icon:hover {
+        background: #f5f7fb;
+        border-color: #c9ced4;
+        color: #374151;
+    }
+
+    .btn-icon:active {
+        background: #eef1f6;
+    }
 </style>
 
 
@@ -42,22 +141,57 @@
 <ul class="list-group shadow-sm" id="agendaList" data-date="{{ date|date:'Y-m-d' }}">
 
     {% for it in items %}
-    <li id="item-{{ it.id }}" class="list-group-item d-flex justify-content-between align-items-center"
-        data-end="{{ it.end_hhmm }}" data-done="{% if it.done %}1{% else %}0{% endif %}">
-        <div class="{% if it.done %}text-decoration-line-through text-muted{% endif %}">
+    <li id="item-{{ it.id }}" class="list-group-item agenda-row d-flex align-items-center" data-end="{{ it.end_hhmm }}"
+        data-done="{% if it.done %}1{% else %}0{% endif %}">
+        <div class="agenda-main flex-grow-1 {% if it.done %}text-decoration-line-through text-muted{% endif %}">
             <span class="fw-semibold">{{ it.start_hhmm }}–{{ it.end_hhmm }}</span>
             &nbsp; <span class="text-muted">[{{ it.group_name|default:it.task.group.name }}]</span>
             {{ it.task.title }}
         </div>
 
-        <form method="post" action="{% url 'planner:toggle-done' it.id %}">
-            {% csrf_token %}
-            <input type="checkbox" class="form-check-input" {% if it.done %}checked{% endif %}
-                onchange="this.form.submit()">
-        </form>
+        <div class="agenda-actions d-flex align-items-center gap-2">
+            <form method="post" action="{% url 'planner:toggle-done' it.id %}" class="m-0 p-0">
+                {% csrf_token %}
+                <input type="checkbox" class="modern-check" {% if it.done %}checked{% endif %}
+                    onchange="this.form.submit()">
+            </form>
+
+            <button type="button" class="btn btn-icon" data-bs-toggle="modal" data-bs-target="#delayModal"
+                data-item-id="{{ it.id }}" title="Delay this task">
+                ⏱
+            </button>
+        </div>
     </li>
+
     {% endfor %}
 </ul>
+
+<!-- Delay Modal -->
+<div class="modal fade" id="delayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" id="delayForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Delay Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="mb-3">How much time do you want to extend this task (and push later ones)?</p>
+                    <input type="hidden" name="minutes" id="delayMinutes">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-warning delay-btn" data-min="15">+15m</button>
+                        <button type="button" class="btn btn-outline-warning delay-btn" data-min="30">+30m</button>
+                        <button type="button" class="btn btn-outline-warning delay-btn" data-min="60">+1h</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 {% endif %}
@@ -125,6 +259,30 @@
         updateOverdue();
         setInterval(updateOverdue, 60 * 1000);
     })();
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const delayModal = document.getElementById('delayModal');
+        const delayForm = document.getElementById('delayForm');
+        const minutesInput = document.getElementById('delayMinutes');
+
+        // when modal opens, set action to the right item
+        delayModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget; // the ⏱ trigger
+            const itemId = button.getAttribute('data-item-id');
+            delayForm.action = `/agenda/item/${itemId}/delay/`;  // matches urls.py
+            minutesInput.value = ""; // reset
+        });
+
+        // hook buttons inside modal
+        document.querySelectorAll('.delay-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                minutesInput.value = btn.getAttribute('data-min');
+                delayForm.submit(); // submit with chosen delay
+            });
+        });
+    });
 </script>
 
 
