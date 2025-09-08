@@ -1,11 +1,26 @@
 {% extends "planner/base_planner.html" %}
 {% block content %}
+<style>
+    .row-overlap {
+        background: #fff2f2 !important;
+    }
+
+    .time-invalid {
+        border-color: #dc3545 !important;
+    }
+</style>
+
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h4 class="mb-0">Edit Agenda — {{ date }}</h4>
     <div>
         <button type="submit" form="agendaForm" class="btn btn-primary">Save</button>
         <a href="/agenda" class="btn btn-outline-secondary">Cancel</a>
     </div>
+</div>
+
+<!-- Hidden alert; we’ll toggle it via JS -->
+<div id="overlapAlert" class="alert alert-danger d-none" role="alert">
+    Overlapping tasks detected. Please fix the highlighted rows before saving.
 </div>
 
 <div class="row g-4">
@@ -239,6 +254,124 @@
             inp.addEventListener('blur', sortRowsByStart);
         });
     }
+
+
+
+
+
+
+
+    // --- overlap validation helpers ---
+    function parseHHMMStrict(s) {
+        const m = /^(\d{2}):(\d{2})$/.exec(s || "");
+        if (!m) return null;
+        const h = +m[1], mi = +m[2];
+        if (h < 0 || h > 24 || mi < 0 || mi > 59) return null;
+        return h * 60 + mi;
+    }
+
+    function collectRows() {
+        const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+        return rows.map(tr => {
+            const ins = tr.querySelectorAll('input');
+            const sV = ins[0].value, eV = ins[1].value;
+            const s = parseHHMMStrict(sV), e = parseHHMMStrict(eV);
+            return { tr, start: s, end: e, sV, eV };
+        });
+    }
+
+    function clearRowStyles(rows) {
+        rows.forEach(r => {
+            r.tr.classList.remove('row-overlap');
+            const ins = r.tr.querySelectorAll('input');
+            ins[0].classList.remove('time-invalid');
+            ins[1].classList.remove('time-invalid');
+        });
+    }
+
+    function validateOverlaps(showUI = true) {
+        const rows = collectRows();
+        clearRowStyles(rows);
+        const alertBox = document.getElementById('overlapAlert');
+        const saveBtn = document.getElementById('saveBtn');
+
+        let hasError = false;
+
+        // invalid times or inverted intervals
+        rows.forEach(r => {
+            if (r.start == null || r.end == null || r.end <= r.start) {
+                hasError = true;
+                if (showUI) {
+                    r.tr.classList.add('row-overlap');
+                    const ins = r.tr.querySelectorAll('input');
+                    ins[0].classList.add('time-invalid');
+                    ins[1].classList.add('time-invalid');
+                }
+            }
+        });
+
+        // sort by start and check pairwise overlaps
+        const sorted = rows.slice().sort((a, b) => (a.start ?? 0) - (b.start ?? 0));
+        for (let i = 1; i < sorted.length; i++) {
+            const prev = sorted[i - 1], cur = sorted[i];
+            if (prev.start != null && prev.end != null && cur.start != null && cur.end != null) {
+                if (cur.start < prev.end) { // overlap
+                    hasError = true;
+                    if (showUI) {
+                        prev.tr.classList.add('row-overlap');
+                        cur.tr.classList.add('row-overlap');
+                    }
+                }
+            }
+        }
+
+        if (showUI) {
+            alertBox.classList.toggle('d-none', !hasError);
+            if (saveBtn) saveBtn.disabled = hasError;
+        }
+        return !hasError;
+    }
+
+    // Hook into time inputs so edits re-validate
+    function attachTimeListeners(tr) {
+        tr.querySelectorAll('input').forEach(inp => {
+            inp.addEventListener('input', () => validateOverlaps(true));
+            inp.addEventListener('change', () => validateOverlaps(true));
+            inp.addEventListener('blur', () => validateOverlaps(true));
+        });
+    }
+
+    // When adding/removing rows, also re-validate
+    const _origAddTaskRow = addTaskRow;
+    addTaskRow = function (btn) {
+        _origAddTaskRow(btn);
+        // attach to the newly-added last row (after your add)
+        const last = document.querySelector('#timelineBody tr:last-child');
+        if (last) attachTimeListeners(last);
+        // resort (you already call sort), then validate
+        validateOverlaps(true);
+    }
+
+    const _origRemoveRow = removeRow;
+    removeRow = function (el) {
+        _origRemoveRow(el);
+        validateOverlaps(true);
+    }
+
+    // Prevent submit if overlaps remain
+    form.addEventListener('submit', (e) => {
+        if (!validateOverlaps(true)) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+
+    // Initial pass on page load
+    (function initValidation() {
+        const rows = Array.from(document.querySelectorAll('#timelineBody tr'));
+        rows.forEach(attachTimeListeners);
+        validateOverlaps(true);
+    })();
 
 
 </script>

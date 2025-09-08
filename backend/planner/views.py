@@ -7,6 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 from .models import DayPlan, PlanItem, Task, TaskGroup
 from .forms import TaskForm, TaskGroupForm
+from django.contrib import messages
 
 def _today():
     return timezone.localdate()
@@ -19,6 +20,25 @@ def agenda_today(request):
     return render(request, "planner/agenda_today.html", {"date": d, "plan": plan, "items": items})
 
 
+def _has_overlaps(rows):
+    """rows: [{'start': 'HH:MM', 'end': 'HH:MM', ...}]"""
+    def to_min(s):
+      h,m = map(int, s.split(':')); return h*60+m
+    try:
+        intervals = []
+        for r in rows:
+            s = to_min(r["start"]); e = to_min(r["end"])
+            if e <= s:  # invalid interval
+                return True
+            intervals.append((s,e))
+        intervals.sort()
+        for i in range(1, len(intervals)):
+            if intervals[i][0] < intervals[i-1][1]:
+                return True
+        return False
+    except Exception:
+        # any parse error = treat as invalid/overlap to be safe
+        return True
 
 @require_http_methods(["GET", "POST"])
 @transaction.atomic
@@ -42,6 +62,16 @@ def agenda_edit(request):
             return HttpResponseBadRequest("Bad items payload")
 
         print("[agenda_edit] parsed rows:", len(rows))
+
+        if _has_overlaps(rows):
+            messages.error(request, "Overlapping or invalid time ranges. Please fix highlighted rows.")
+            # Re-render editor with current DB items and task drawer (no changes saved)
+            tasks = Task.objects.filter(active=True).select_related("group").order_by("-priority", "duration_min")
+            items = plan.items.select_related("task").all()
+            groups = TaskGroup.objects.all().order_by("name")
+            return render(request, "planner/agenda_edit.html", {
+                "date": d, "items": items, "tasks": tasks, "groups": groups
+            })
 
         # # SAFETY: if nothing came through, do nothing (avoid accidental clears)
         # if len(rows) == 0:
