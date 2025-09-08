@@ -1,5 +1,33 @@
 {% extends "planner/base_planner.html" %}
 {% block content %}
+<style>
+    /* Smooth transitions for overdue visuals */
+    .overdue-row {
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Red → transparent gradient overlay that grows from the RIGHT edge */
+    .overdue-row::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: calc(var(--overdue, 0) * 100%);
+        /* 0..1 → 0..100% */
+        /* Strong red on the very right, fading to transparent so text on the left stays readable */
+        background: linear-gradient(to left,
+                rgba(220, 53, 69, 0.95) 0%,
+                rgba(220, 53, 69, 0.95) 10%,
+                rgba(220, 53, 69, 0.0) 100%);
+        pointer-events: none;
+        transition: width 0.25s linear;
+    }
+</style>
+
+
+
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h4 class="mb-0">Agenda — {{ date }}</h4>
     <a class="btn btn-outline-secondary btn-sm" href="/agenda">Jump to today</a>
@@ -11,9 +39,11 @@
     <a href="/agenda/edit/" class="btn btn-primary btn-lg">Create today’s agenda</a>
 </div>
 {% else %}
-<ul class="list-group shadow-sm">
+<ul class="list-group shadow-sm" id="agendaList" data-date="{{ date|date:'Y-m-d' }}">
+
     {% for it in items %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
+    <li id="item-{{ it.id }}" class="list-group-item d-flex justify-content-between align-items-center"
+        data-end="{{ it.end_hhmm }}" data-done="{% if it.done %}1{% else %}0{% endif %}">
         <div class="{% if it.done %}text-decoration-line-through text-muted{% endif %}">
             <span class="fw-semibold">{{ it.start_hhmm }}–{{ it.end_hhmm }}</span>
             &nbsp; <span class="text-muted">[{{ it.group_name|default:it.task.group.name }}]</span>
@@ -29,6 +59,7 @@
     {% endfor %}
 </ul>
 
+
 {% endif %}
 
 <div class="fab-stack">
@@ -36,4 +67,65 @@
     <a class="btn btn-success fab" title="Add" href="/agenda/add/">＋</a>
     <a class="btn btn-secondary fab" title="Manage" href="/agenda/manage/">☰</a>
 </div>
+
+<script>
+    (function () {
+        const listEl = document.getElementById('agendaList');
+        if (!listEl) { console.log('[overdue] no agendaList'); return; }
+
+        function parseISODate(dstr) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dstr || '');
+            if (!m) return null;
+            const y = +m[1], mo = +m[2], d = +m[3];
+            return new Date(y, mo - 1, d, 0, 0, 0, 0);
+        }
+        function parseHHMM(s) {
+            const m = /^(\d{2}):(\d{2})$/.exec(s || '');
+            if (!m) return null;
+            const h = +m[1], mi = +m[2];
+            if (h < 0 || h > 24 || mi < 0 || mi > 59) return null;
+            return h * 60 + mi;
+        }
+
+        const DAY_MIN = 24 * 60;
+
+        function updateOverdue() {
+            const pageDateISO = listEl.getAttribute('data-date'); // should be Y-m-d
+            const baseDate = parseISODate(pageDateISO);
+            console.log('[overdue] page date:', pageDateISO, '->', baseDate?.toString());
+
+            const now = new Date();
+            const items = listEl.querySelectorAll('li[data-end]');
+            console.log('[overdue] items found:', items.length, 'now:', now.toString());
+
+            items.forEach(li => {
+                // ensure class present
+                li.classList.add('overdue-row');
+                // reset CSS var each pass
+                li.style.setProperty('--overdue', 0);
+
+                const done = li.getAttribute('data-done') === '1';
+                const endStr = li.getAttribute('data-end');
+                const endMin = parseHHMM(endStr);
+
+                if (done) { return; }
+                if (endMin == null || !baseDate) { console.log('[overdue] bad time/date for', li.id, endStr, baseDate); return; }
+
+                const endDate = new Date(baseDate);
+                endDate.setMinutes(endMin);
+                const overdueMs = now - endDate;
+                if (overdueMs <= 0) return; // not overdue
+
+                const overdueMin = Math.floor(overdueMs / 60000);
+                const t = Math.max(0, Math.min(1, overdueMin / DAY_MIN)); // 0..1 over 24h
+                li.style.setProperty('--overdue', t.toFixed(3));
+            });
+        }
+
+        updateOverdue();
+        setInterval(updateOverdue, 60 * 1000);
+    })();
+</script>
+
+
 {% endblock %}
