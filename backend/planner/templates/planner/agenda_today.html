@@ -159,8 +159,6 @@
     /* better touch drawing */
 </style>
 
-
-
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h4 class="mb-0">Agenda — {{ date }}</h4>
     <a class="btn btn-outline-secondary btn-sm" href="/agenda">Jump to today</a>
@@ -178,10 +176,11 @@
     <li id="item-{{ it.id }}" class="list-group-item agenda-row d-flex align-items-center"
         data-start="{{ it.start_hhmm }}" data-end="{{ it.end_hhmm }}"
         data-done="{% if it.done %}1{% else %}0{% endif %}">
-        <div class="agenda-main flex-grow-1 {% if it.done %}text-decoration-line-through text-muted{% endif %}">
 
-            <button type="button" class="task-toggle w-100 text-start" data-bs-toggle="collapse"
-                data-bs-target="#desc-{{ it.id }}" aria-expanded="false">
+        <div class="agenda-main flex-grow-1">
+            <button type="button"
+                class="task-toggle w-100 text-start {% if it.done %}text-decoration-line-through text-muted{% endif %}"
+                data-bs-toggle="collapse" data-bs-target="#desc-{{ it.id }}" aria-expanded="false">
                 <span class="fw-semibold">{{ it.start_hhmm }}–{{ it.end_hhmm }}</span>
                 &nbsp; <span class="text-muted">[{{ it.group_name|default:it.task.group.name }}]</span>
                 {{ it.task.title }}
@@ -345,7 +344,6 @@
     </div>
 </div>
 
-
 <!-- Delay Modal -->
 <div class="modal fade" id="delayModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -373,7 +371,6 @@
     </div>
 </div>
 
-
 {% endif %}
 
 <div class="fab-stack">
@@ -386,7 +383,6 @@
     <a class="btn btn-success fab" title="Add" href="/agenda/add/">＋</a>
     <a class="btn btn-secondary fab" title="Manage" href="/agenda/manage/">☰</a>
 </div>
-
 
 <!-- Free time modal -->
 <div class="modal fade" id="freeTimeModal" tabindex="-1" aria-hidden="true">
@@ -592,8 +588,6 @@
     })();
 </script>
 
-
-
 <script>
     (function () {
         // Add item
@@ -659,7 +653,6 @@
         });
     })();
 </script>
-
 
 <script>
     (function () {
@@ -828,9 +821,6 @@
     })();
 </script>
 
-
-
-
 <script>
     (function () {
         // open file picker
@@ -897,6 +887,5 @@
         });
     })();
 </script>
-
 
 {% endblock %}
