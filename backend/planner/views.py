@@ -13,34 +13,7 @@ from django.db.models import Count, Q
 # views.py (or utils where _today lives)
 from django.utils import timezone
 
-def _today():
-    # returns the date in the current active time zone (settings.TIME_ZONE or user tz)
-    return timezone.localdate()
-
-
-# @require_http_methods(["GET"])
-# def agenda_today(request):
-#     d = _today()
-#     plan = DayPlan.objects.filter(date=d).first()
-#     items = plan.items.select_related("task").all() if plan else []
-#     return render(request, "planner/agenda_today.html", {"date": d, "plan": plan, "items": items})
-
-# def agenda_today(request):
-#     d = _today()
-#     plan, created = DayPlan.objects.get_or_create(date=d)
-
-#     if created and not plan.items.exists():
-#         necessities = TaskGroup.objects.get_or_create(name="Necessities")[0]
-
-#         deep_sleep = Task.objects.get(title="Deep Sleep")
-#         light_sleep = Task.objects.get(title="Light Sleep")
-
-#         PlanItem.objects.bulk_create([
-#             PlanItem(plan=plan, task=deep_sleep, group_name=necessities.name,
-#                      start_hhmm="00:00", end_hhmm="06:00", order=0),
-#             PlanItem(plan=plan, task=light_sleep, group_name=necessities.name,
-#                      start_hhmm="22:00", end_hhmm="23:59", order=999),
-#         ])
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -121,6 +94,7 @@ def _sort_key(item: PlanItem):
     return (s, e, item.order, item.id or 0)
 
 # ========== VIEW ==========
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["GET"])
 def agenda_today(request):
     d = _today()
@@ -160,6 +134,7 @@ def _has_overlaps(rows):
         # any parse error = treat as invalid/overlap to be safe
         return True
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["GET", "POST"])
 @transaction.atomic
 def agenda_edit(request):
@@ -318,14 +293,12 @@ def agenda_edit(request):
     #     "date": d, "items": items, "tasks": tasks, "groups": groups
     # })
 
-    
-
-
-
+@login_required(login_url="/agenda/login/")
 def add_entry(request):
     # simple chooser page
     return render(request, "planner/add_entry.html")
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["GET", "POST"])
 def add_task(request):
     if request.method == "POST":
@@ -338,6 +311,7 @@ def add_task(request):
         form = TaskForm()
     return render(request, "planner/add_task.html", {"form": form})
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["GET", "POST"])
 def add_group(request):
     if request.method == "POST":
@@ -350,11 +324,13 @@ def add_group(request):
         form = TaskGroupForm()
     return render(request, "planner/add_group.html", {"form": form})
 
+@login_required(login_url="/agenda/login/")
 def manage_hub(request):
     return render(request, "planner/manage.html")
 
 from django.shortcuts import get_object_or_404
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["POST"])
 def toggle_done(request, item_id):
     it = get_object_or_404(PlanItem, id=item_id)
@@ -367,9 +343,7 @@ from django.forms import modelform_factory
 from django.contrib import messages
 
 # ----- TASKS -----
-# def tasks_list(request):
-#     qs = Task.objects.select_related("group").order_by("group__name","-priority","title")
-#     return render(request, "planner/tasks_list.html", {"tasks": qs})
+@login_required(login_url="/agenda/login/")
 def tasks_list(request):
     qs = Task.objects.select_related("group").order_by("group__name","-priority","title")
     q = request.GET.get("q")
@@ -377,7 +351,7 @@ def tasks_list(request):
         qs = qs.filter(title__icontains=q)
     return render(request, "planner/tasks_list.html", {"tasks": qs})
 
-
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["GET","POST"])
 def task_edit(request, pk):
     obj = get_object_or_404(Task, pk=pk)
@@ -394,40 +368,21 @@ def task_edit(request, pk):
         "title": f"Edit Task: {obj.title}"
     })
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["POST"])
 def task_delete(request, pk):
     get_object_or_404(Task, pk=pk).delete()
     messages.success(request, "Deleted")
     return redirect("planner:tasks-list")
 
-# from django.db.models.deletion import ProtectedError
-# from django.contrib import messages
-# from django.shortcuts import get_object_or_404, redirect
-# from .models import Task, PlanItem
-
-# @require_http_methods(["POST"])
-# def task_delete(request, pk):
-#     obj = get_object_or_404(Task, pk=pk)
-#     try:
-#         obj.delete()
-#         messages.success(request, "Task deleted.")
-#     except ProtectedError:
-#         # Soft-delete when the task is referenced in any plan
-#         cnt = PlanItem.objects.filter(task=obj).count()
-#         obj.active = False
-#         obj.save(update_fields=["active"])
-#         messages.warning(
-#             request,
-#             f"Task is used in {cnt} agenda item(s); marked as inactive instead."
-#         )
-#     return redirect("planner:tasks-list")
-
 
 # ----- GROUPS -----
+@login_required(login_url="/agenda/login/")
 def groups_list(request):
     qs = TaskGroup.objects.order_by("name")
     return render(request, "planner/groups_list.html", {"groups": qs})
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["GET","POST"])
 def group_edit(request, pk):
     Form = modelform_factory(TaskGroup, fields=["name","notes"])
@@ -440,6 +395,7 @@ def group_edit(request, pk):
         form = Form(instance=obj)
     return render(request, "planner/simple_form.html", {"form": form, "title": f"Edit Group: {obj.name}"})
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["POST"])
 def group_delete(request, pk):
     get_object_or_404(TaskGroup, pk=pk).delete()
@@ -447,10 +403,8 @@ def group_delete(request, pk):
     return redirect("planner:groups-list")
 
 # ----- AGENDAS -----
-# def agendas_list(request):
-#     qs = DayPlan.objects.order_by("-date").prefetch_related("items")
-#     return render(request, "planner/agendas_list.html", {"plans": qs})
 
+@login_required(login_url="/agenda/login/")
 def agendas_list(request):
     plans = DayPlan.objects.order_by("-date").prefetch_related("items")
     rows = []
@@ -460,8 +414,7 @@ def agendas_list(request):
         rows.append({"plan": p, "total": total, "done": done})
     return render(request, "planner/agendas_list.html", {"rows": rows})
 
-
-
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["POST"])
 def task_purge(request, pk):
     obj = get_object_or_404(Task, pk=pk)
@@ -470,12 +423,12 @@ def task_purge(request, pk):
     messages.success(request, "Task and its scheduled items were permanently deleted.")
     return redirect("planner:tasks-list")
 
-
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from .models import PlanItem
 
+@login_required(login_url="/agenda/login/")
 @require_http_methods(["POST"])
 def delay_after(request, item_id):
     """Extend the selected item by N minutes and push all later items forward by N."""
@@ -532,14 +485,13 @@ def delay_after(request, item_id):
     return redirect("planner:agenda-today")
 
 
-
-
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from .models import Task, TaskChecklistItem
 
 def _json_error(msg, code=400): return JsonResponse({"ok": False, "error": msg}, status=code)
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def check_add(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -553,6 +505,7 @@ def check_add(request, task_id):
     item = TaskChecklistItem.objects.create(task=task, text=text, order=order)
     return JsonResponse({"ok": True, "id": item.id, "text": item.text, "done": item.done})
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def check_toggle(request, task_id, item_id):
     task = get_object_or_404(Task, id=task_id)
@@ -561,6 +514,7 @@ def check_toggle(request, task_id, item_id):
     item.save(update_fields=["done"])
     return JsonResponse({"ok": True, "id": item.id, "done": item.done})
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def check_delete(request, task_id, item_id):
     task = get_object_or_404(Task, id=task_id)
@@ -578,6 +532,7 @@ from .models import Task, TaskDrawing
 def _json_error(msg, code=400): 
     return JsonResponse({"ok": False, "error": msg}, status=code)
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def drawing_save(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -609,6 +564,7 @@ def drawing_save(request, task_id):
         "created": drawing.created_at.isoformat(),
     })
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def drawing_delete(request, pk):
     dr = get_object_or_404(TaskDrawing, id=pk)
@@ -626,6 +582,7 @@ MAX_UPLOAD_MB = 20  # tweak if you want
 
 def _json_error(msg, code=400): return JsonResponse({"ok": False, "error": msg}, status=code)
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def attach_upload(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -653,6 +610,7 @@ def attach_upload(request, task_id):
         })
     return JsonResponse({"ok": True, "items": created})
 
+@login_required(login_url="/agenda/login/")
 @require_POST
 def attach_delete(request, pk):
     att = get_object_or_404(TaskAttachment, id=pk)

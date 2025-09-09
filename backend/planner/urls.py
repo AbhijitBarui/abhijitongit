@@ -1,9 +1,14 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 app_name = "planner"
 
 urlpatterns = [
+
+    path("login/",  auth_views.LoginView.as_view(template_name="planner/agenda_login.html"), name="agenda-login"),
+    path("logout/", auth_views.LogoutView.as_view(next_page="/"), name="agenda-logout"),
+
     path("", views.agenda_today, name="agenda-today"),            # /agenda
     path("edit/", views.agenda_edit, name="agenda-edit"),         # /agenda/edit
     path("add/", views.add_entry, name="agenda-add"),             # /agenda/add (chooser)

@@ -1,0 +1,10 @@
+{% extends "planner/base_planner.html" %}
+{% block content %}
+<div class="container py-5" style="max-width:420px">
+    <h4 class="mb-3">Agenda Login</h4>
+    <form method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary w-100">Sign in</button>
+    </form>
+</div>
+{% endblock %}

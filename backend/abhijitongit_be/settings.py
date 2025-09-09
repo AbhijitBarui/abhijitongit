@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'planner',
 ]
 
+
+
 ASGI_APPLICATION = "abhijitongit_be.asgi.application"
 
 CHANNEL_LAYERS = {
@@ -150,3 +152,10 @@ CONTACT_RECEIVER_EMAIL = 'abhi@abhijitongit.com'
 
 TEMPLATES[0]['DIRS'] = [BASE_DIR / 'core' / 'templates']
 STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+
+
+
+
+
+
+LOGIN_URL = "/agenda/login/"
